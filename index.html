@@ -223,7 +223,7 @@
             document.getElementById('stat-dmg').innerText = state.damage + "/10";
             
             // Asset loading optimization: If you name files "allied_170.jpg", they automatically pull here
-            document.getElementById('cockpit-view').innerHTML = `<img src="${state.role}_${state.currentPage}.jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;">`;
+            document.getElementById('cockpit-view').innerHTML = `<img src="cockpit/${state.role}_${state.currentPage}.jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;">`;
             
             // Reset visibility states
             document.getElementById('stage-select').classList.add('active');
