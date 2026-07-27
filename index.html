@@ -71,7 +71,7 @@
                     <p><strong>Step 3: Select Specific Arrow</strong> (<span id="summary-dir"></span>)</p>
 
                     <!-- This container dynamically populates with the exact arrows available-->
-                    <div id="arrow-buttons-container"></div>
+                    <div id="arrow-buttons-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 12px; padding: 10px; justify-items: center;"></div>
 
                     <hr style="border-color:#444; margin:15px;">
                     <button class="btn" style="background:#552222;" onclick="goBackToDirection()">Back To Direction</button>
@@ -161,17 +161,30 @@
                 const button = document.createElement('button');
                 button.className = 'btn btn-action';
 
-                // Configure layout
-                button.style.display ='flex';
+                button.style.background = '#007bff';
+                button.style.border = '1px solid #0056b3';
+                button.style.color = '#fff';
+                button.style.borderRadius = '8px';
+                button.style.cursor = 'pointer';
+
+                // Transform the button into a large square block
+                button.style.width = '90px';
+                button.style.height = '90px';
+                button.style.display = 'flex';
+                button.style.flexDirection = 'column';
+                button.style.justifyContent = 'center';
                 button.style.alignItems = 'center';
-                button.style.justifyContent = 'space-between';
-                button.style.padding = '8px 15px';
+                button.style.padding = '8px';
+                button.style.boxSizing = 'border-box';
 
                 // Inject the real graphic directly inside your button object dynamically
                 button.innerHTML = `
-                    <span style="font-size:0.9em;">Option ${i}</span>
-                    <img src="arrows/${moveKey}.png" alt="Maneuver ${i}" style="height: 32px; width: auto; filter: invert(1); object-fit: contain;">
-                `
+                    <img src="arrows/${moveKey}.png" alt="Maneuver ${i}" style="height: 50px; width: 50px; filter: invert(1); object-fit: contain; margin-bottom: 4px;">
+                `;
+
+                button.onmouseover = function() { this.style.background = '#0069d9'; };
+                button.onmouseout = function() { this.style.background = '#007bff'; };
+
                 button.onclick = function() { submitFinalWizardMove(moveKey); };
                 
                 container.appendChild(button);
