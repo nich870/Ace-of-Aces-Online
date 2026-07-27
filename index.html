@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ace of Aces: Two-Device Edition</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: #f0f0f0; text-align: center; padding: 15px; margin: 0; }
+        .card { background: #2a2a2a; border-radius: 12px; padding: 20px; max-width: 450px; margin: 20px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn { background: #444; color: #fff; border: 1px solid #666; padding: 12px 20px; margin: 6px; cursor: pointer; border-radius: 6px; font-weight: bold; width: 85%; }
+        .btn:hover { background: #555; }
+        .btn-action { background: #007bff; border-color: #0056b3; }
+        .btn-action:hover { background: #0069d9; }
+        .status-grid { display: flex; justify-content: space-around; margin: 15px 0; background: #333; padding: 10px; border-radius: 8px; font-size: 0.9em; }
+        .view-window { width: 100%; max-width: 320px; aspect-ratio: 4/3; border: 2px solid #555; margin: 15px auto; display: flex; align-items: center; justify-content: center; background: #3a3a3a; font-weight: bold; border-radius: 6px; color: #aaa; }
+        .step-box { background: #3d3d29; border: 1px solid #666633; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left; }
+        input[type="number"] { width: 80px; padding: 8px; font-size: 1.1em; text-align: center; border-radius: 4px; border: 1px solid #666; background: #333; color: #fff; }
+        .screen { display: none; }
+        .active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Ace of Aces Tracker</h1>
+        
+        <!-- Screen 1: Role Setup -->
+        <div id="setup-screen" class="screen active">
+            <p>Choose your side to configure your specific digital flight book:</p>
+            <button class="btn btn-action" onclick="chooseRole('allied')">Allied Pilot</button>
+            <button class="btn btn-action" onclick="chooseRole('german')">German Pilot</button>
+        </div>
+
+        <!-- Screen 2: Main Flight Dashboard -->
+        <div id="flight-screen" class="screen">
+            <div class="status-grid">
+                <div><strong>Role</strong>: <span id="stat-role">-</span></div>
+                <div><strong>Page</strong>: <span id="stat-page">170</span></div>
+                <div><strong>Alt</strong>: <span id="stat-alt">3</span></div>
+                <div><strong>Dmg</strong>: <span id="stat-dmg">0/10</span></div>
+            </div>
+
+            <div class="view-window" id="cockpit-view">
+                Cockpit Image Placeholder
+            </div>
+
+            <!-- Stage 1: Multi-Step Manuever Selection Wizard -->
+            <div id="stage-select">
+                <h3>Select Your Maneuver</h3>
+
+                <!-- Step 1: Speed Selection -->
+                <div id="wizard-speed" class="wizard-step active">
+                    <p><strong>Step 1: Choose Speed</strong></p>
+                    <button class="btn btn-action" onclick="selectSpeed('slow')">SLOW</button>
+                    <button class="btn btn-action" onclick="selectSpeed('cruising')">CRUISING</button>
+                    <button class="btn btn-action" onclick="selectSpeed('fast')">FAST</button>
+                </div>
+
+                <!-- Step 2: Direction Selection -->
+                <div id="wizard-direction" class="wizard-step" style="display:none;">
+                    <p><strong>Step 2: Choose Direction</strong>(<span id="summary-speed"></span>)</p>
+                    <button class="btn" onclick="selectDirection('left')">Left</button>
+                    <button class="btn" onclick="selectDirection('straight')">Straight</button>
+                    <button class="btn" onclick="selectDirection('right')">Right</button>
+                    <hr style="border-color:#444; margin:15px;">
+                    <button class="btn" style="background:#552222;" onclick="goBackToSpeed()">Back To Speed</button>
+                </div>
+
+                <!-- Step 3: Specific Arrow/Icon Selection -->
+                <div id="wizard-arrow" class="wizard-step" style="display:none;">
+                    <p><strong>Step 3: Select Specific Arrow</strong> (<span id="summary-dir"></span>)</p>
+
+                    <!-- This container dynamically populates with the exact arrows available-->
+                    <div id="arrow-buttons-container"></div>
+
+                    <hr style="border-color:#444; margin:15px;">
+                    <button class="btn" style="background:#552222;" onclick="goBackToDirection()">Back To Direction</button>
+                </div>
+            </div>
+
+            <!-- Stage 2: Tell and Receive Matrix Code -->
+            <div id="stage-swap" class="screen">
+                <div class="step-box">
+                    <p><strong>1. Tell Opponent</strong>: "My Mid-Turn page is <span id="show-midturn" style="color:#ffcc00; font-weight:bold;">-</span>"</p>
+                    <p><strong>2. Get Code</strong>: Ask your opponent for their Mid-Turn page number.</p>
+                </div>
+                <label for="opponent-code">Enter Opponent's Code: </label>
+                <input type="number" id="opponent-code" placeholder="???"><br><br>
+                <button class="btn btn-action" onclick="resolveTurn()">Calculate End Turn Page</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Physical matrix book parsing logic (Example subset for demonstration)
+        const bookMatrices = {
+            allied: {
+
+                64: { "slow_left_1": 27, "slow_left_2": 20, "slow_left_3": 2, "slow_straight_1": 64, "slow_straight_2": 35, "slow_straight_3": 169, "slow_right_1": 148, "slow_right_2": 123, "slow_right_3": 138, "cruising_left_1": 63, "cruising_left_2": 51, "cruising_left_3": 198, "cruising_straight_1": 74, "cruising_straight_2": 39, "cruising_straight_3": 36, "cruising_straight_4": 144, "cruising_right_1": 86, "cruising_right_2": 97, "cruising_right_3": 223, "fast_left_1": 26, "fast_left_2": 209, "fast_straight_1": 85, "fast_straight_2": 73, "fast_straight_3": 96, "fast_right_1": 117, "fast_right_2": 223 },
+                
+                170: { "slow_left_1": 52, "slow_left_2": 51, "slow_left_3": 86, "slow_straight_1": 170, "slow_straight_2": 64, "slow_straight_3": 223, "slow_right_1": 223, "slow_right_2": 223, "slow_right_3": 223, "cruising_left_1": 130, "cruising_left_2": 166, "cruising_left_3": 35, "cruising_straight_1": 169, "cruising_straight_2": 160, "cruising_straight_3": 74, "cruising_straight_4": 223, "cruising_right_1": 148, "cruising_right_2": 154, "cruising_right_3": 223, "fast_left_1": 63, "fast_left_2": 27, "fast_straight_1": 144, "fast_straight_2": 138, "fast_straight_3": 117, "fast_right_1": 223, "fast_right_2": 223 },
+                171: { "slow_left_1": 41, "slow_left_2": 21, "slow_left_3": 3, "slow_straight_1": 171, "slow_straight_2": 53, "slow_straight_3": 170, "slow_right_1": 149, "slow_right_2": 154, "slow_right_3": 130, "cruising_left_1": 52, "cruising_left_2": 40, "cruising_left_3": 10, "cruising_straight_1": 64, "cruising_straight_2": 98, "cruising_straight_3": 35, "cruising_straight_4": 169, "cruising_right_1": 75, "cruising_right_2": 87, "cruising_right_3": 223, "fast_left_1": 27, "fast_left_2": 34, "fast_straight_1": 74, "fast_straight_2": 63, "fast_straight_3": 86, "fast_right_1": 148, "fast_right_2": 223 },
+                
+            },
+            german: {
+                
+                64: { "slow_left_1": 177, "slow_left_2": 145, "slow_left_3": 130, "slow_straight_1": 64, "slow_straight_2": 171, "slow_straight_3": 35, "slow_right_1": 26, "slow_right_2": 20, "slow_right_3": 16, "cruising_left_1": 43, "cruising_left_2": 92, "cruising_left_3": 223, "cruising_straight_1": 53, "cruising_straight_2": 94, "cruising_straight_3": 124, "cruising_straight_4": 10, "cruising_right_1": 63, "cruising_right_2": 72, "cruising_right_3": 198, "fast_left_1": 118, "fast_left_2": 223, "fast_straight_1": 42, "fast_straight_2": 91, "fast_straight_3": 52, "fast_right_1": 27, "fast_right_2": 209 },
+
+                169: { "slow_left_1": 176, "slow_left_2": 201, "slow_left_3": 138, "slow_straight_1": 169, "slow_straight_2": 170, "slow_straight_3": 74, "slow_right_1": 84, "slow_right_2": 19, "slow_right_3": 15, "cruising_left_1": 54, "cruising_left_2": 44, "cruising_left_3": 223, "cruising_straight_1": 64, "cruising_straight_2": 104, "cruising_straight_3": 171, "cruising_straight_4": 35, "cruising_right_1": 73, "cruising_right_2": 106, "cruising_right_3": 36, "fast_left_1": 177, "fast_left_2": 223, "fast_straight_1": 53, "fast_straight_2": 43, "fast_straight_3": 63, "fast_right_1": 26, "fast_right_2": 25 },
+                170: { "slow_left_1": 223, "slow_left_2": 223, "slow_left_3": 223, "slow_straight_1": 170, "slow_straight_2": 223, "slow_straight_3": 64, "slow_right_1": 73, "slow_right_2": 72, "slow_right_3": 43, "cruising_left_1": 177, "cruising_left_2": 201, "cruising_left_3": 223, "cruising_straight_1": 171, "cruising_straight_2": 219, "cruising_straight_3": 223, "cruising_straight_4": 53, "cruising_right_1": 138, "cruising_right_2": 114, "cruising_right_3": 35, "fast_left_1": 223, "fast_left_2": 223, "fast_straight_1": 124, "fast_straight_2": 118, "fast_straight_3": 130, "fast_right_1": 63, "fast_right_2": 26 },
+
+            }
+        };
+
+
+        // State parameters tracking current choices
+        let wizardState = {
+            speed: null,
+            direction: null
+        };
+        
+        const maneuverLayout = {
+            slow: { left: 3, straight: 3, right: 3},
+            cruising: { left: 3, straight: 4, right: 3},
+            fast: { left: 2, straight: 3, right: 2}
+        };
+
+        let state = {
+            role: null,
+            currentPage: 170,
+            altitude: 3,
+            damage: 0,
+            mySelectedMove: null,
+            myMidTurnCode: null
+        };
+
+        
+
+        function selectSpeed(speedChoice) {
+            wizardState.speed = speedChoice;
+            document.getElementById('summary-speed').innerText = speedChoice.toUpperCase();
+            
+            // Switch views
+            document.getElementById('wizard-speed').style.display = 'none';
+            document.getElementById('wizard-direction').style.display = 'block';
+        }
+
+        function selectDirection(directionChoice) {
+            wizardState.direction = directionChoice;
+            document.getElementById('summary-dir').innerText = `${wizardState.speed.toUpperCase()} ➔ ${directionChoice.toUpperCase()}`;
+            
+            // Dynamically build buttons for the specific arrows in this column block
+            const container = document.getElementById('arrow-buttons-container');
+            container.innerHTML = ''; // Clear previous fields
+            
+            const arrowCount = maneuverLayout[wizardState.speed][directionChoice];
+            
+            for (let i = 1; i <= arrowCount; i++) {
+                const moveKey = `${wizardState.speed}_${directionChoice}_${i}`;
+                
+                const button = document.createElement('button');
+                button.className = 'btn btn-action';
+                button.innerText = `🏹 Arrow Option ${i}`;
+                button.onclick = function() { submitFinalWizardMove(moveKey); };
+                
+                container.appendChild(button);
+            }
+            
+            // Switch views
+            document.getElementById('wizard-direction').style.display = 'none';
+            document.getElementById('wizard-arrow').style.display = 'block';
+        }
+
+        // Back Button Functions
+        function goBackToSpeed() {
+            document.getElementById('wizard-direction').style.display = 'none';
+            document.getElementById('wizard-speed').style.display = 'block';
+        }
+
+        function goBackToDirection() {
+            document.getElementById('wizard-arrow').style.display = 'none';
+            document.getElementById('wizard-direction').style.display = 'block';
+        }
+
+        // Processing Execution
+        function submitFinalWizardMove(moveKey) {
+            const activeBook = bookMatrices[state.role];
+            const currentPage = state.currentPage;
+
+            if (!activeBook[currentPage] || !activeBook[currentPage][moveKey]) {
+                alert(`Error: Move "${moveKey}" is not mapped yet for page ${currentPage}!`);
+                return;
+            }
+
+            const dynamicMidTurnValue = activeBook[currentPage][moveKey];
+
+            state.mySelectedMove = moveKey;
+            state.myMidTurnCode = dynamicMidTurnValue;
+
+            document.getElementById('show-midturn').innerText = dynamicMidTurnValue;
+            
+            // Hide wizard entirely, show the mid-turn resolution/swap card panel
+            document.getElementById('stage-select').classList.remove('active');
+            document.getElementById('stage-swap').classList.add('active');
+            
+            // Reset wizard view back to step 1 for the next turn loop
+            document.getElementById('wizard-arrow').style.display = 'none';
+            document.getElementById('wizard-speed').style.display = 'block';
+        }
+
+        function chooseRole(selectedRole) {
+            state.role = selectedRole;
+            document.getElementById('setup-screen').classList.remove('active');
+            document.getElementById('flight-screen').classList.add('active');
+            
+            document.getElementById('stat-role').innerText = selectedRole.toUpperCase();
+            renderUI();
+        }
+
+        function renderUI() {
+            document.getElementById('stat-page').innerText = state.currentPage;
+            document.getElementById('stat-alt').innerText = state.altitude;
+            document.getElementById('stat-dmg').innerText = state.damage + "/10";
+            
+            // Asset loading optimization: If you name files "allied_170.jpg", they automatically pull here
+            document.getElementById('cockpit-view').innerHTML = `<img src="${state.role}_${state.currentPage}.jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;">`;
+            
+            // Reset visibility states
+            document.getElementById('stage-select').classList.add('active');
+            document.getElementById('stage-swap').classList.remove('active');
+            document.getElementById('opponent-code').value = '';
+        }
+        
+
+        function resolveTurn() {
+            const oppCodeInput = document.getElementById('opponent-code').value;
+            const opponentMidTurn = parseInt(oppCodeInput, 10);
+
+            if (isNaN(opponentMidTurn)) {
+                alert("Please type in the page number your opponent called out!");
+                return;
+            }
+
+            // Real physical game logic execution:
+            // "Turn to your opponent's mid-turn page, look up your own original move choice"
+            const currentBook = bookMatrices[state.role];
+
+            if (currentBook[opponentMidTurn] && currentBook[opponentMidTurn][state.mySelectedMove]) {
+                const endTurnPage = currentBook[opponentMidTurn][state.mySelectedMove];
+                
+                state.currentPage = endTurnPage;
+
+                // --- CHOOSE DAMAGE LOGIC ---
+                //Example: if (endTurnPage === 94) { state.damage += 2; alert("You took 2 damage!") }
+
+                alert(`Turn Complete! Both books synchronized to page: ${endTurnPage}`);
+                renderUI();
+            } else {
+                alert("Maneuver path or page matrix not found in mock database! Returning to page 170.");
+                state.currentPage = 170;
+                renderUI();
+            }
+        }
+    </script>
+</body>
+</html>
