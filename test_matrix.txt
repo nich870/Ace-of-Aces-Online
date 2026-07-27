@@ -1,0 +1,65 @@
+// Clean text layout. Simply type out: Page, PageArray
+const rawAlliedData = `
+64 | 27,20,2,64,35,169,148,123,138,63,51,198,74,39,36,144,86,97,223,26,209,85,73,96,117,223
+170 | 165,72,194,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+`;
+
+const rawGermanData = `
+64 | 27,20,2,64,35,169,148,123,138,63,51,198,74,39,36,144,86,97,223,26,209,85,73,96,117,223
+170 | 165,72,194,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+`;
+
+// Global lookup table initialized automatically at launch
+let bookMatrices = { allied: {}, german: {} };
+
+// Index positions mapping text strings to the 26 list spaces
+const moveKeyIndexMap = [
+    "slow_left_1", "slow_left_2", "slow_left_3",
+    "slow_straight_1", "slow_straight_2", "slow_straight_3",
+    "slow_right_1", "slow_right_2", "slow_right_3",
+    "cruising_left_1", "cruising_left_2", "cruising_left_3",
+    "cruising_straight_1", "cruising_straight_2", "cruising_straight_3", "cruising_straight_4",
+    "cruising_right_1", "cruising_right_2", "cruising_right_3",
+    "fast_left_1", "fast_left_2",
+    "fast_straight_1", "fast_straight_2", "fast_straight_3",
+    "fast_right_1", "fast_right_2"
+];
+
+
+_____________________
+
+// Automatically build your game database the moment the page opens
+window.onload = function() {
+    processInternalMatrix(rawAlliedData, 'allied');
+    processInternalMatrix(rawGermanData, 'german');
+    console.log("Internal wargame engines fully generated!");
+};
+
+function processInternalMatrix(rawDataString, roleLabel) {
+    // Split the text block line by line
+    const lines = rawDataString.split("\n");
+    
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line || line.startsWith("#")) return; // Skip empty rows or comment notes
+        
+        // Split our columns using the pipe symbol (|)
+        const parts = line.split("|");
+        if (parts.length < 3) return; // Guard against broken entries
+        
+        const pageNum = parseInt(parts[0].trim(), 10);
+        const midTurnsArray = parts[1].trim().split(",").map(Number);
+        
+        // Initialize structural mapping slots
+        if (!bookMatrices[roleLabel][pageNum]) {
+            bookMatrices[roleLabel][pageNum] = {};
+        }
+        
+        // Map all 26 maneuvers sequentially to their respective wizard keys
+        moveKeyIndexMap.forEach((moveKey, index) => {
+            bookMatrices[roleLabel][pageNum][moveKey] = {
+                midTurn: midTurnsArray[index] || 170, // Fallback to 170 if cell blank
+            };
+        });
+    });
+}
