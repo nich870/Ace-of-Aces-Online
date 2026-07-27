@@ -160,7 +160,18 @@
                 
                 const button = document.createElement('button');
                 button.className = 'btn btn-action';
-                button.innerText = `🏹 Arrow Option ${i}`;
+
+                // Configure layout
+                button.style.display ='flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'space-between';
+                button.style.padding = '8px 15px';
+
+                // Inject the real graphic directly inside your button object dynamically
+                button.innerHTML = `
+                    <span style="font-size:0.9em;">Option ${i}</span>
+                    <img src="arrows/${moveKey}.png" alt="Maneuver ${i}" style="height: 32px; width: auto; filter: invert(1); object-fit: contain;">
+                `
                 button.onclick = function() { submitFinalWizardMove(moveKey); };
                 
                 container.appendChild(button);
