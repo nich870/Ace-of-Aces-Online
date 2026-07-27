@@ -256,8 +256,7 @@
                 alert(`Turn Complete! Both books synchronized to page: ${endTurnPage}`);
                 renderUI();
             } else {
-                alert("Maneuver path or page matrix not found in mock database! Returning to page 170.");
-                state.currentPage = 170;
+                alert("Maneuver path or page matrix not found in mock database! Returning to previous page.");
                 renderUI();
             }
         }
