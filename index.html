@@ -156,6 +156,9 @@
         12 | 17.71.100.12.11.69.79.195.178.70.49.102.80.39.103.184.90.101.185.81.107.159.153.165.192.193
         13 | 4.32.9.13.14.18.24.15.19.188.209.99.213.198.28.30.205.187.94.5.78.29.6.22.23.92
         14 | 78.58.87.14.99.213.205.3.6.5.32.189.28.31.77.29.9.2.30.67.214.66.57.88.22.23
+        15 | 44.219.171.15.54.16.10.52.93.92.94.176.43.72.177.91.53.63.107.201.200.118.145.124.42.102
+        16 | 92.139.124.16.43.107.102.132.147.93.83.177.91.62.118.120.42.52.151.145.201.119.146.125.126.157
+        17 | 
 
 
         64 | 177.145.130.64.171.35.26.20.16.43.92.223.53.94.124.10.63.72.198.118.223.42.91.52.27.209
@@ -226,7 +229,7 @@
             document.getElementById('stat-dmg').innerText = state.damage + "/6";
             
             // Asset loading optimization: If you name files "allied_170.jpg", they automatically pull here
-            document.getElementById('cockpit-view').innerHTML = `<img src="cockpit/${state.role}_${state.currentPage}.jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;" onerror="this.style.display='none'; document.getElementById('cockpit-text-fallback').innerText='Photo for page ${state.currentPage} goes here';">
+            document.getElementById('cockpit-view').innerHTML = `<img src="cockpit/${state.role}_ (${state.currentPage}).jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;" onerror="this.style.display='none'; document.getElementById('cockpit-text-fallback').innerText='Photo for page ${state.currentPage} goes here';">
             <div id="cockpit-text-fallback" style="color:#aaa; font-weight:bold;"></div>
             `;
             

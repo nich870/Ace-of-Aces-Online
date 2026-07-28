@@ -9,7 +9,7 @@ import numpy as np
 # ==========================================
 VIDEO_FILE = "german_book_recording.mp4" # Put your exact video filename here
 OUTPUT_FOLDER = "german_pages" # The folder where pictures will be saved
-THRESHOLD = 0.40 # Sensitivity: Lower means more sensitive to movement
+THRESHOLD = 3.0 # Sensitivity: Lower means more sensitive to movement
 MIN_STABLE_FRAMES = 15 # How many frames the page must stay still to count as a "shot"
 
 def extract_stable_pages():
