@@ -81,8 +81,8 @@
             <!-- Stage 2: Tell and Receive Matrix Code -->
             <div id="stage-swap" class="screen">
                 <div class="step-box">
-                    <p><strong>1. Tell Opponent</strong>: "My Mid-Turn page is <span id="show-midturn" style="color:#ffcc00; font-weight:bold;">-</span>"</p>
-                    <p><strong>2. Get Code</strong>: Ask your opponent for their Mid-Turn page number.</p>
+                    <p><strong>1. Tell Opponent</strong>: "My Code is <span id="show-midturn" style="color:#ffcc00; font-weight:bold;">-</span>"</p>
+                    <p><strong>2. Get Code</strong>: Ask your opponent for their Code.</p>
                 </div>
                 <label for="opponent-code">Enter Opponent's Code: </label>
                 <input type="number" id="opponent-code" placeholder="???"><br><br>
@@ -92,38 +92,6 @@
     </div>
 
     <script>
-        // Physical matrix book parsing logic (Example subset for demonstration)
-        const bookMatrices = {
-            allied: {
-
-                64: { "slow_left_1": 27, "slow_left_2": 20, "slow_left_3": 2, "slow_straight_1": 64, "slow_straight_2": 35, "slow_straight_3": 169, "slow_right_1": 148, "slow_right_2": 123, "slow_right_3": 138, "cruising_left_1": 63, "cruising_left_2": 51, "cruising_left_3": 198, "cruising_straight_1": 74, "cruising_straight_2": 39, "cruising_straight_3": 36, "cruising_straight_4": 144, "cruising_right_1": 86, "cruising_right_2": 97, "cruising_right_3": 223, "fast_left_1": 26, "fast_left_2": 209, "fast_straight_1": 85, "fast_straight_2": 73, "fast_straight_3": 96, "fast_right_1": 117, "fast_right_2": 223 },
-                
-                170: { "slow_left_1": 52, "slow_left_2": 51, "slow_left_3": 86, "slow_straight_1": 170, "slow_straight_2": 64, "slow_straight_3": 223, "slow_right_1": 223, "slow_right_2": 223, "slow_right_3": 223, "cruising_left_1": 130, "cruising_left_2": 166, "cruising_left_3": 35, "cruising_straight_1": 169, "cruising_straight_2": 160, "cruising_straight_3": 74, "cruising_straight_4": 223, "cruising_right_1": 148, "cruising_right_2": 154, "cruising_right_3": 223, "fast_left_1": 63, "fast_left_2": 27, "fast_straight_1": 144, "fast_straight_2": 138, "fast_straight_3": 117, "fast_right_1": 223, "fast_right_2": 223 },
-                171: { "slow_left_1": 41, "slow_left_2": 21, "slow_left_3": 3, "slow_straight_1": 171, "slow_straight_2": 53, "slow_straight_3": 170, "slow_right_1": 149, "slow_right_2": 154, "slow_right_3": 130, "cruising_left_1": 52, "cruising_left_2": 40, "cruising_left_3": 10, "cruising_straight_1": 64, "cruising_straight_2": 98, "cruising_straight_3": 35, "cruising_straight_4": 169, "cruising_right_1": 75, "cruising_right_2": 87, "cruising_right_3": 223, "fast_left_1": 27, "fast_left_2": 34, "fast_straight_1": 74, "fast_straight_2": 63, "fast_straight_3": 86, "fast_right_1": 148, "fast_right_2": 223 },
-                
-            },
-            german: {
-                
-                64: { "slow_left_1": 177, "slow_left_2": 145, "slow_left_3": 130, "slow_straight_1": 64, "slow_straight_2": 171, "slow_straight_3": 35, "slow_right_1": 26, "slow_right_2": 20, "slow_right_3": 16, "cruising_left_1": 43, "cruising_left_2": 92, "cruising_left_3": 223, "cruising_straight_1": 53, "cruising_straight_2": 94, "cruising_straight_3": 124, "cruising_straight_4": 10, "cruising_right_1": 63, "cruising_right_2": 72, "cruising_right_3": 198, "fast_left_1": 118, "fast_left_2": 223, "fast_straight_1": 42, "fast_straight_2": 91, "fast_straight_3": 52, "fast_right_1": 27, "fast_right_2": 209 },
-
-                169: { "slow_left_1": 176, "slow_left_2": 201, "slow_left_3": 138, "slow_straight_1": 169, "slow_straight_2": 170, "slow_straight_3": 74, "slow_right_1": 84, "slow_right_2": 19, "slow_right_3": 15, "cruising_left_1": 54, "cruising_left_2": 44, "cruising_left_3": 223, "cruising_straight_1": 64, "cruising_straight_2": 104, "cruising_straight_3": 171, "cruising_straight_4": 35, "cruising_right_1": 73, "cruising_right_2": 106, "cruising_right_3": 36, "fast_left_1": 177, "fast_left_2": 223, "fast_straight_1": 53, "fast_straight_2": 43, "fast_straight_3": 63, "fast_right_1": 26, "fast_right_2": 25 },
-                170: { "slow_left_1": 223, "slow_left_2": 223, "slow_left_3": 223, "slow_straight_1": 170, "slow_straight_2": 223, "slow_straight_3": 64, "slow_right_1": 73, "slow_right_2": 72, "slow_right_3": 43, "cruising_left_1": 177, "cruising_left_2": 201, "cruising_left_3": 223, "cruising_straight_1": 171, "cruising_straight_2": 219, "cruising_straight_3": 223, "cruising_straight_4": 53, "cruising_right_1": 138, "cruising_right_2": 114, "cruising_right_3": 35, "fast_left_1": 223, "fast_left_2": 223, "fast_straight_1": 124, "fast_straight_2": 118, "fast_straight_3": 130, "fast_right_1": 63, "fast_right_2": 26 },
-
-            }
-        };
-
-
-        // State parameters tracking current choices
-        let wizardState = {
-            speed: null,
-            direction: null
-        };
-        
-        const maneuverLayout = {
-            slow: { left: 3, straight: 3, right: 3},
-            cruising: { left: 3, straight: 4, right: 3},
-            fast: { left: 2, straight: 3, right: 2}
-        };
 
         let state = {
             role: null,
@@ -134,8 +102,116 @@
             myMidTurnCode: null
         };
 
-        
+        // State parameters tracking current choices
+        let wizardState = {
+            speed: null,
+            direction: null
+        };
 
+        // Global lookup table initialized automatically at launch
+        let bookMatrices = { allied: {}, german: {} };
+
+        // Index positions mapping text strings to the 26 list spaces
+        const moveKeyIndexMap = [
+            "slow_left_1", "slow_left_2", "slow_left_3",
+            "slow_straight_1", "slow_straight_2", "slow_straight_3",
+            "slow_right_1", "slow_right_2", "slow_right_3",
+            "cruising_left_1", "cruising_left_2", "cruising_left_3",
+            "cruising_straight_1", "cruising_straight_2", "cruising_straight_3", "cruising_straight_4",
+            "cruising_right_1", "cruising_right_2", "cruising_right_3",
+            "fast_left_1", "fast_left_2",
+            "fast_straight_1", "fast_straight_2", "fast_straight_3",
+            "fast_right_1", "fast_right_2"
+        ];
+
+        const maneuverLayout = {
+            slow: { left: 3, straight: 3, right: 3},
+            cruising: { left: 3, straight: 4, right: 3},
+            fast: { left: 2, straight: 3, right: 2}
+        };
+
+        // Physical matrix book parsing logic
+        // Clean text layout. Simply type out: Page, PageArray
+        const rawAlliedData = `
+
+        64 | 27.20.2.64.35.169.148.123.138.63.51.198.74.39.36.144.86.97.223.26.209.85.73.96.117.223
+
+        170 | 52.51.86.170.64.223.223.223.223.130.166.35.169.160.74.223.148.154.223.63.27.144.138.117.223.223
+        171 | 41.21.3.171.53.170.149.154.130.52.40.10.64.98.35.169.75.87.223.27.34.74.63.86.148.223
+
+        `;
+
+        const rawGermanData = `
+
+        64 | 177.145.130.64.171.35.26.20.16.43.92.223.53.94.124.10.63.72.198.118.223.42.91.52.27.209
+
+        169 | 176.201.138.169.170.74.84.19.15.54.44.223.64.104.171.35.73.106.36.177.223.53.43.63.26.25
+        170 | 223.223.223.170.223.64.73.72.43.177.201.223.171.219.223.53.138.114.35.223.223.124.118.130.63.26
+
+        `;
+
+        // Automatically build your game database the moment the page opens
+        window.onload = function() {
+            processInternalMatrix(rawAlliedData, 'allied');
+            processInternalMatrix(rawGermanData, 'german');
+            console.log("Internal wargame engines fully generated!");
+        };
+
+        function processInternalMatrix(rawDataString, roleLabel) {
+            // Split the text block line by line
+            const lines = rawDataString.split("\n");
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line || line.startsWith("#")) return; // Skip empty rows or comment notes
+                
+                // Split our columns using the pipe symbol (|)
+                const parts = line.split("|");
+                if (parts.length < 2) return; // Guard against broken entries
+                
+                const pageNum = parseInt(parts[0].trim(), 10);
+                const cleanMidTurnText = parts[1].replace(/\./g, ',');
+                const midTurnsArray = cleanMidTurnText.split(",").map(Number);
+                
+                // Initialize structural mapping slots
+                if (!bookMatrices[roleLabel][pageNum]) {
+                    bookMatrices[roleLabel][pageNum] = {};
+                }
+                
+                const loopsToRun = Math.min(moveKeyIndexMap.length, midTurnsArray.length);
+                for (let index = 0; index < loopsToRun; index++) {
+                    const moveKey = moveKeyIndexMap[index];
+                    bookMatrices[roleLabel][pageNum][moveKey] = midTurnsArray[index];
+                }
+
+            });
+        }
+
+        function chooseRole(selectedRole) {
+            state.role = selectedRole;
+            document.getElementById('setup-screen').classList.remove('active');
+            document.getElementById('flight-screen').classList.add('active');
+            
+            document.getElementById('stat-role').innerText = selectedRole.toUpperCase();
+            renderUI();
+        }
+
+        function renderUI() {
+            document.getElementById('stat-page').innerText = state.currentPage;
+            document.getElementById('stat-alt').innerText = state.altitude;
+            document.getElementById('stat-dmg').innerText = state.damage + "/6";
+            
+            // Asset loading optimization: If you name files "allied_170.jpg", they automatically pull here
+            document.getElementById('cockpit-view').innerHTML = `<img src="cockpit/${state.role}_${state.currentPage}.jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;" onerror="this.style.display='none'; document.getElementById('cockpit-text-fallback').innerText='Photo for page ${state.currentPage} goes here';">
+            <div id="cockpit-text-fallback" style="color:#aaa; font-weight:bold;"></div>
+            `;
+            
+            // Reset visibility states
+            document.getElementById('stage-select').classList.add('active');
+            document.getElementById('stage-swap').classList.remove('active');
+            document.getElementById('opponent-code').value = '';
+        }
+        
         function selectSpeed(speedChoice) {
             wizardState.speed = speedChoice;
             document.getElementById('summary-speed').innerText = speedChoice.toUpperCase();
@@ -232,28 +308,7 @@
             document.getElementById('wizard-speed').style.display = 'block';
         }
 
-        function chooseRole(selectedRole) {
-            state.role = selectedRole;
-            document.getElementById('setup-screen').classList.remove('active');
-            document.getElementById('flight-screen').classList.add('active');
-            
-            document.getElementById('stat-role').innerText = selectedRole.toUpperCase();
-            renderUI();
-        }
-
-        function renderUI() {
-            document.getElementById('stat-page').innerText = state.currentPage;
-            document.getElementById('stat-alt').innerText = state.altitude;
-            document.getElementById('stat-dmg').innerText = state.damage + "/10";
-            
-            // Asset loading optimization: If you name files "allied_170.jpg", they automatically pull here
-            document.getElementById('cockpit-view').innerHTML = `<img src="cockpit/${state.role}_${state.currentPage}.jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;">`;
-            
-            // Reset visibility states
-            document.getElementById('stage-select').classList.add('active');
-            document.getElementById('stage-swap').classList.remove('active');
-            document.getElementById('opponent-code').value = '';
-        }
+        
         
 
         function resolveTurn() {
