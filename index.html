@@ -34,15 +34,16 @@
         <!-- Screen 2: Main Flight Dashboard -->
         <div id="flight-screen" class="screen">
             <div class="status-grid">
-                <div><strong>Role</strong>: <span id="stat-role">-</span></div>
+                <div><span id="stat-role">-</span></div>
                 <div><strong>Page</strong>: <span id="stat-page">170</span></div>
-                <div><strong>Alt</strong>: <span id="stat-alt">3</span></div>
-                <div><strong>Dmg</strong>: <span id="stat-dmg">0/10</span></div>
+                <div><strong>Dmg</strong>: <span id="stat-dmg">0/6</span></div>
             </div>
 
             <div class="view-window" id="cockpit-view">
                 Cockpit Image Placeholder
             </div>
+
+            <div id="status-alert-box" style="width: 100%; max-width: 320px; margin: 0 auto;"></div>
 
             <!-- Stage 1: Multi-Step Manuever Selection Wizard -->
             <div id="stage-select">
@@ -96,8 +97,9 @@
         let state = {
             role: null,
             currentPage: 170,
-            altitude: 3,
             damage: 0,
+            opponentDamage: 0, // Tracks opponent's damage so you know when game ends
+            victoryPoints: 0, //Tracks scenario points and adds to a pilot log if created
             mySelectedMove: null,
             myMidTurnCode: null
         };
@@ -110,6 +112,64 @@
 
         // Global lookup table initialized automatically at launch
         let bookMatrices = { allied: {}, german: {} };
+
+        // Master Layout for all pages where shooting or tailing occur
+        const specialPageEvents = {
+            allied: {
+                // Pages where allied player GETS SHOT (and takes damage)
+                damagePages: {
+                    2: 2, // Page 2 deals 2 damage
+                    8: 2, // Page 8 deals 2 damage
+                    13: 2,
+                    20: 2,
+                    26: 2,
+                    36: 2,
+                    38: 1,
+                    50: 1,
+                    62: 1,
+                    73: 1,
+                    85: 1,
+                    96: 1,
+                    116: 0.5,
+                    122: 0.5,
+                    128: 0.5,
+                    134: 0.5,
+                    137: 0.5,
+                    143: 0.5
+                },
+                // Pages where the Allied pilot is TAILING the German plane
+                tailingPages: [10, 11, 15, 16, 17, 23, 24, 42, 43, 44, 54, 81, 91, 92, 93, 102, 103, 107, 118, 119, 120, 125, 126, 145, 146, 151, 152, 157, 158, 176, 177, 200, 201],
+                // Pages where the Allied pilot is BEING TAILED by the german plane
+                beingTailed: [1, 2, 3, 8, 9, 31, 36, 37, 38, 48, 60, 75, 85, 86, 87, 95, 96, 97, 115, 116, 117, 122, 123, 142, 143, 148, 149, 154, 155, 179, 180, 203, 204]
+            },
+            german: {
+                // Pages where the German GETS SHOT and takes damage
+                damagePages: {
+                    10: 2,
+                    16: 2,
+                    18: 2,
+                    20: 2,
+                    24: 2,
+                    27: 2,
+                    42: 1,
+                    52: 1,
+                    62: 1,
+                    83: 1,
+                    91: 1,
+                    93: 1,
+                    119: 0.5,
+                    125: 0.5,
+                    131: 0.5,
+                    134: 0.5,
+                    140: 0.5,
+                    146: 0.5
+                },
+                // Pages where the German pilot is TAILING the Allied plane
+                tailingPages: [1, 2, 3, 8, 9, 31, 36, 37, 38, 48, 60, 75, 85, 86, 87, 95, 96, 97, 115, 116, 117, 122, 123, 142, 143, 148, 149, 154, 155, 179, 180, 203, 204],
+                // Pages where the German pilot is BEING TAILED by the Allied plane
+                beingTailed: [10, 11, 15, 16, 17, 23, 24, 42, 43, 44, 54, 81, 91, 92, 93, 102, 103, 107, 118, 119, 120, 125, 126, 145, 146, 151, 152, 157, 158, 176, 177, 200, 201]
+            }
+        };
 
         // Index positions mapping text strings to the 26 list spaces
         const moveKeyIndexMap = [
@@ -234,11 +294,11 @@
         89 | 193.223.223.89.196.78.99.154.210.194.186.223.197.180.223.214.162.123.67.223.223.223.223.223.189.77
         90 | 159.223.223.90.165.79.89.161.185.184.178.223.192.121.223.193.195.160.194.223.223.223.223.223.196.197
         91 | 145.233.223.91.118.120.126.223.223.146.140.223.119.134.223.223.125.131.223.223.223.223.223.223.223.223
-        92 | 104.113.176.9244.145.118.223.223.219.114.199.201.138.200.223.177.171.223.218.217.223.223.223.223.223
+        92 | 104.113.176.92.44.145.118.223.223.219.114.199.201.138.200.223.177.171.223.218.217.223.223.223.223.223
         93 | 94.114.177.93.92.146.119.223.223.139.133.44.145.130.201.223.118.124.223.219.104.223.223.223.223.223
         94 | 19.84.55.94.30.219.201.176.113.106.73.29.104.64.45.218.44.54.223.105.6.217.112.199.200.223
         95 | 3.205.209.95.36.48.58.78.37.2.9.35.31.28.198.59.32.5.202.187.15.12.1.33.68.210
-        96 | 88.29.36.96.86.37.59.33.8.9.28.75.2.5.3.4.1.31.32.60.22.65.187.205.198.12.69
+        96 | 88.29.36.96.86.37.59.33.8.9.28.75.2.5.3.1.31.32.60.22.65.187.205.198.12.69
         97 | 77.57.86.97.87.8.1.198.213.28.5.156.9.32.88.205.2.31.7.66.191.22.29.3.187.17
         98 | 197.210.154.98.162.14.8.2.5.78.68.223.99.59.189.28.97.37.213.214.223.77.67.87.9.205
         99 | 214.211.155.99.189.28.9.86.57.67.58.223.77.48.190.66.87.96.29.215.223.191.216.156.88.22
@@ -308,16 +368,94 @@
         }
 
         function renderUI() {
+            // 1. Update cockpit headers
             document.getElementById('stat-page').innerText = state.currentPage;
-            document.getElementById('stat-alt').innerText = state.altitude;
-            document.getElementById('stat-dmg').innerText = state.damage + "/6";
+            document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
             
-            // Asset loading optimization: If you name files "allied_170.jpg", they automatically pull here
+            // 2. Clear out any previous layout flags
+            const alertContainer = document.getElementById('status-alert-box');
+            alertContainer.innerHTML = ""; // Wipes html alert box clean
+
+            let statusAlertHTML = "";
+            const activeEvents = specialPageEvents[state.role];
+            const currentPage = state.currentPage;
+
+            // Sub-logic 1: You are being shot
+            if (activeEvents.damagePages && activeEvents.damagePages[currentPage]) {
+                const structuralHit = activeEvents.damagePages[currentPage];
+                // Apply damage to state data once!
+                if (!state.damageProcessedForPage || state.damageProcessedForPage !== currentPage) {
+                    state.damage += structuralHit;
+                    document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
+                }
+
+                statusAlertHTML += `
+                    <div style="background: #551111; color: #ff9999; border: 1px solid #ff3333; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-weight: bold; animation: blink 1s infinite;">
+                        !!! ALERT: DIRECT HIT !!! You sustained ${structuralHit} damage!
+                    </div>
+                `;
+            }
+
+            // Sub-logic 2: Detect if you shot opponent
+            const opponentRole = (state.role === 'allied') ? 'german' : 'allied';
+            const enemyEvents = specialPageEvents[opponentRole];
+
+            if (enemyEvents.damagePages && enemyEvents.damagePages[currentPage]) {
+                const enemyHitValue = enemyEvents.damagePages[currentPage];
+
+                if (!state.enemyDmgProcessedForPage || state.enemyDmgProcessedForPage !== currentPage) {
+                    state.opponentDamage += enemyHitValue;
+                    document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
+                }
+
+                statusAlertHTML += `
+                    <div style="background: #113355; color: #99ccff; border: 1px solid #3399ff; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-weight: bold;">
+                        HIT CONFIRMED! Your crosshairs lined up perfectly and you dealt ${enemyHitValue} damage to the enemy!
+                    </div>
+                `;
+            }
+
+            // Tailing detections
+            if (activeEvents.tailingPages && activeEvents.tailingPages.includes(currentPage)) {
+                statusAlertHTML += `
+                    <div style="background: #114411; color: #99ff99; border: 1px solid #33cc33; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-weight: bold;">
+                        YOU ARE TAILING THE ENEMY! They must announce their next turn direction (eg. LEFT, STRAIGHT, or RIGHT) before you select your move.
+                    </div>
+                `;
+            }
+
+            // Sub-logic 3: Being Tailed Detections
+            if (activeEvents.beingTailed && activeEvents.beingTailed.includes(currentPage)) {
+                statusAlertHTML += `
+                    <div style="background: #43311; color: #ffcc66; border: 1px solid #ff9900; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-weight: bold;">
+                        WARNING: THE ENEMY IS TAILING YOU! You must announce the direction you will fly right next turn! (LEFT, STRAIGHT, or RIGHT)
+                    </div>
+                `;
+            }
+            
+            // Alerts
+            if (statusAlertHTML) {
+                alertContainer.innerHTML = statusAlertHTML;
+            }
+
+            // 3. Render cockpit graphics here (allied_ (170).jpg)
             document.getElementById('cockpit-view').innerHTML = `<img src="cockpit/${state.role}_ (${state.currentPage}).jpg" alt="${state.role} page ${state.currentPage}" style="width:100%; height:100%; object-fit:contain; border-radius:6px;" onerror="this.style.display='none'; document.getElementById('cockpit-text-fallback').innerText='Photo for page ${state.currentPage} goes here';">
             <div id="cockpit-text-fallback" style="color:#aaa; font-weight:bold;"></div>
             `;
 
-            // Re-initialize code exchange panel since 223 code might have run
+            // Check for damage that ends the game
+            if (state.damage >= 6 && state.opponentDamage >= 6) {
+                triggerEndScreen("!!! MUTUAL DESTRUCTION !!!", "Both aircraft have been shot down simultaneously! The battle ends in a draw.");
+                return;
+            } else if (state.damage >= 6) {
+                triggerEndScreen("!!! SHOT DOWN !!!","Your plane has sustained too much damage and you went down in flames. The enemy gains 1 victory point.");
+                return;
+            } else if (state.opponentDamage >= 6) {
+                triggerEndScreen("!!! VICTORY !!!", "You have successfully shot down the enemy! You gain 1 Victory Point.");
+                return;
+            }
+
+            // 4. Re-initialize code exchange panel since 223 code might have run
             document.getElementById('stage-swap').innerHTML = `
                 <div class="step-box">
                     <p><strong>1. Tell Opponent</strong>: "My code is <span id="show-midturn" style="color:#ffcc00; font-weight:bold;">-</span>"</p>
@@ -331,6 +469,22 @@
             // Reset visibility states
             document.getElementById('stage-select').classList.add('active');
             document.getElementById('stage-swap').classList.remove('active');
+        }
+
+        // Simple End Screen for shot down mechanic
+        function triggerEndScreen(headerTitle, messageText) {
+            document.getElementById('status-alert-box').innerHTML = ""; // Clears all active alert
+            document.getElementById('flight-screen').innerHTML = `
+                <div style="padding: 40px 15px; background: #222; border-radius: 12px; border: 2px dashed #ff3333; margin-top:20px;">
+                    <h2 style="color: #ff3333; margin-top:0;">${headerTitle}</h2>
+                    <p style="font-size: 1.1em; color #eee;">${messageText}</p>
+                    <hr style="border-color:#444; margin:15px 0;">
+                    <p><strong>Final Battle Record:</strong></p>
+                    <p>Your Damage: ${state.damage}/6 | Enemy Damage: ${state.opponentDamage}/6</p>
+                    <br>
+                    <button class="btn btn-action" onclick="window.location.reload();">Return to Main Menu</button>
+                </div>
+            `;
         }
         
         function selectSpeed(speedChoice) {
@@ -442,9 +596,11 @@
 
             // Check for page 223
             if (opponentMidTurn === 223) {
+                state.currentPage = 223;
+                renderUI;
                 // Condition 1: Both players got 223 as a code
                 if (state.myMidTurnCode === 223) {
-                    triggerGameOver("Both Aircraft lost sight of each other! Would you like to search for the enemy or escape?");
+                    triggerScoutingDilemma();
                     return;
                 }
 
@@ -479,7 +635,7 @@
                 // --- CHOOSE DAMAGE LOGIC ---
                 //Example: if (endTurnPage === 94) { state.damage += 2; alert("You took 2 damage!") }
 
-                alert(`Turn Complete! Both books synchronized to page: ${endTurnPage}`);
+                //alert(`Turn Complete! Both books synchronized to page: ${endTurnPage}`);
                 renderUI();
             } else {
                 alert("Maneuver path or page matrix not found in mock database! Returning to previous page.");
@@ -520,6 +676,10 @@
                     <button class="btn btn-action" onclick="window.location.reload();">Return to Base / Fly Again</button>
                 </div>
             `;
+        }
+
+        function triggerScoutingDilemma() {
+            // Overwrites lower action area with tiles
         }
 
     </script>
