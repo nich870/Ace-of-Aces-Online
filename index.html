@@ -451,7 +451,8 @@
                 triggerEndScreen("!!! SHOT DOWN !!!","Your plane has sustained too much damage and you went down in flames. The enemy gains 1 victory point.");
                 return;
             } else if (state.opponentDamage >= 6) {
-                triggerEndScreen("!!! VICTORY !!!", "You have successfully shot down the enemy! You gain 1 Victory Point.");
+                state.victoryPoints += 1
+                triggerEndScreen("🏆 VICTORY 🏆", "You have successfully shot down the enemy! You gain 1 Victory Point.");
                 return;
             }
 
@@ -474,17 +475,23 @@
         // Simple End Screen for shot down mechanic
         function triggerEndScreen(headerTitle, messageText) {
             document.getElementById('status-alert-box').innerHTML = ""; // Clears all active alert
-            document.getElementById('flight-screen').innerHTML = `
-                <div style="padding: 40px 15px; background: #222; border-radius: 12px; border: 2px dashed #ff3333; margin-top:20px;">
+
+            document.getElementById('stage-select').innerHTML = "";
+            document.getElementById('stage-select').classList.remove('active');
+
+            document.getElementById('stage-swap').innerHTML = `
+                <div style="padding: 25px 15px; background: #111; border-radius: 12px; border: 2px dashed #ff3333; margin-top:10px;">
                     <h2 style="color: #ff3333; margin-top:0;">${headerTitle}</h2>
-                    <p style="font-size: 1.1em; color #eee;">${messageText}</p>
-                    <hr style="border-color:#444; margin:15px 0;">
-                    <p><strong>Final Battle Record:</strong></p>
-                    <p>Your Damage: ${state.damage}/6 | Enemy Damage: ${state.opponentDamage}/6</p>
+                    <p style="font-size: 1.05em; color #eee; line-height: 1.4;">${messageText}</p>
+                    <hr style="border-color:#333; margin:15px 0;">
+                    <p style="margin:5px 0;"><strong>Final Battle Record:</strong></p>
+                    <p style="font-size:0.95em; color:#aaa; margin:5px 0;">Your Damage: <strong>${state.damage}/6</strong> | Enemy Damage: <strong>${state.opponentDamage}/6</strong></p>
+                    <p style="font-size:0.95em; color:#aaafff; margin:5px 0;">You earned <strong>${state.victoryPoints}</strong> Victory Points</p>
                     <br>
-                    <button class="btn btn-action" onclick="window.location.reload();">Return to Main Menu</button>
+                    <button class="btn btn-action" onclick="window.location.reload();" style="width:100%;">Return to Menu</button>
                 </div>
             `;
+            document.getElementById('stage-swap').classList.add('active');
         }
         
         function selectSpeed(speedChoice) {
@@ -678,8 +685,54 @@
             `;
         }
 
+        // Updated 223 Functions
+        // Step 1: Render the initial Search vs. Escape choice buttons
         function triggerScoutingDilemma() {
-            // Overwrites lower action area with tiles
+            document.getElementById('stage-select').classList.remove('active');
+            document.getElementById('stage-swap').innerHTML = `
+                <div style="background: #2a2a3a; padding: 15px; border-radius: 8px; border: 1px solid #555; margin-top: 15px;">
+                    <h3 style="margin-top:0;">THE ENEMY HAS FLOWN OUT OF SIGHT!</h3>
+                    <p>Both planes have vanished into the clouds. Choose your tactical path:</p>
+                    <p>You cannot change this once you select an option!</p>
+                    <button class="btn btn-action" onclick="submitDilemmaChoice('search')" style="background:#28a745; border-color:#1e7e34; width:100%; margin:5px 0;">SEARCH FOR ENEMY</button>
+                    <button class="btn btn-action" onclick="submitDilemmaChoice('escape')" style="background:#dc3545; border-color:#bd2130; width:100%; margin:5px 0;">ESCAPE BATTLE</button>
+                </div>
+            `;
+            document.getElementById('stage-swap').classList.add('active');
+        }
+
+        // Step 2: Generate the new confirmation card over the exact same spot
+        function submitDilemmaChoice(myChoice) {
+            const formattedChoice = myChoice.toUpperCase();
+            
+            document.getElementById('stage-swap').innerHTML = `
+                <div style="background: #2a2a3a; padding: 15px; border-radius: 8px; border: 1px solid #555; margin-top: 15px;">
+                    <h3 style="margin-top:0; color:#ffcc00;">YOU CHOSE: ${formattedChoice}</h3>
+                    <p>Now, look at your opponent's screen and input what <strong>THEY</strong> chose:</p>
+                    <button class="btn btn-action" onclick="calculateDilemmaOutcome('${myChoice}', 'search')" style="background:#28a745; border-color:#1e7e34; width:100%; margin:5px 0;">OPPONENT IS SEARCHING</button>
+                    <button class="btn btn-action" onclick="calculateDilemmaOutcome('${myChoice}', 'escape')" style="background:#dc3545; border-color:#bd2130; width:100%; margin:5px 0;">OPPONENT IS ESCAPING</button>
+                    <hr style="border-color:#444; margin:12px 0;">
+                </div>
+            `;
+        }
+
+        // Step 3: Run the cross-reference math once both choices are locked in
+        function calculateDilemmaOutcome(myChoice, opponentChoice) {
+            if (myChoice === 'search' && opponentChoice === 'search') {
+                alert("Both pilots turned back into the fray! All current damage carries over.");
+                state.currentPage = 170;
+                renderUI();
+            } 
+            else if (myChoice === 'search' && opponentChoice === 'escape') {
+                state.victoryPoints += 0.5;
+                triggerEndScreen("🏆 SKIES CLEARED 🏆", "You turned back to hunt, but the enemy fled! You score +0.5 Scenario Victory Points for successfully claiming the skies.");
+            } 
+            else if (myChoice === 'escape' && opponentChoice === 'search') {
+                triggerEndScreen("❌ MISSION ABORTED ❌", "You safely headed home while the enemy pilot circled back looking for you. The enemy claims tactical control of the skies. (You score 0 points).");
+            } 
+            else if (myChoice === 'escape' && opponentChoice === 'escape') {
+                triggerEndScreen("🤝 BATTLE ABANDONED 🤝", "Both pilots agreed to live to fight another day and headed back to base. The match ends in a mutual draw.");
+            }
         }
 
     </script>
