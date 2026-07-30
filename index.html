@@ -22,13 +22,47 @@
 <body>
 
     <div class="card">
-        <h1>Ace of Aces Mobile</h1>
-        
-        <!-- Screen 1: Role Setup -->
-        <div id="setup-screen" class="screen active">
+        <!-- Screen 0: Master Main Menu -->
+        <div id="main-menu-screen" class="screen active" style="text-align: center; padding: 20px 10px;">
+            <h1 style="color: #ffcc00; margin-bottom: 5px;">ACE OF ACES</h1>
+            <p style="font-style: italic; color: #aaa; margin-top: 0; font-size: 0.9em;">WWI Aerial Combat Simulator</p>
+            
+            <div style="margin: 40px 0;">
+                <button class="btn btn-action" onclick="navigateTo('setup-screen')" style="width: 85%; padding: 15px; font-size: 1.1em; margin-bottom: 15px;">START MISSION</button>
+                <button class="btn" onclick="openTutorial()" style="width: 85%; padding: 15px; font-size: 1.1em; background: #3a3a4a; border-color: #5a5a6a;">LEARN TO PLAY</button>
+            </div>
+            <p style="font-size: 0.75em; color: #666; margin-top: 50px;">Private Companion Application</p>
+        </div>
+
+        <!-- Screen 1: Role Setup (Modified to include a back button) -->
+        <div id="setup-screen" class="screen">
             <p>Choose your side to configure your specific digital flight book:</p>
             <button class="btn btn-action" onclick="chooseRole('allied')">Allied Pilot</button>
             <button class="btn btn-action" onclick="chooseRole('german')">German Pilot</button>
+            <hr style="border-color:#333; margin: 20px auto; max-width: 85%;">
+            <button class="btn" onclick="navigateTo('main-menu-screen')" style="background: #444; font-size: 0.9em; width: 50%;">⬅ Main Menu</button>
+        </div>
+
+        <!-- Screen 1.5: Interactive Tutorial Slideshow Wizard -->
+        <div id="tutorial-screen" class="screen" style="max-width: 450px; margin: 0 auto; text-align: center;">
+            <h2 style="color: #ffcc00; margin-top: 0;">Flight School</h2>
+            
+            <!-- Image Viewport container for tutorial graphics -->
+            <div class="view-window" id="tutorial-view" style="width: 100%; border: 2px solid #555; background: #222; border-radius: 8px;">
+                <img id="tutorial-img" src="" alt="Tutorial Scene" style="width: 100%; height: 100%; object-fit: contain; border-radius: 6px;">
+            </div>
+            
+            <!-- Dynamic Explanation Text Box -->
+            <div class="step-box" style="background: #2a2a2a; border: 1px solid #444; padding: 15px; border-radius: 8px; margin: 15px 0; min-height: 80px; text-align: left; font-size: 0.95em; line-height: 1.4;">
+                <p id="tutorial-text" style="margin: 0; color: #eee;"></p>
+            </div>
+
+            <!-- Slideshow Control row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <button class="btn" id="tut-prev-btn" onclick="changeTutorialPage(-1)" style="width: 30%; margin:0; padding: 10px;">⬅ Back</button>
+                <span id="tut-progress-indicator" style="font-weight: bold; color: #aaa; font-size: 0.9em;">1 / 4</span>
+                <button class="btn btn-action" id="tut-next-btn" onclick="changeTutorialPage(1)" style="width: 30%; margin:0; padding: 10px;">Next ➡</button>
+            </div>
         </div>
 
         <!-- Screen 2: Main Flight Dashboard -->
@@ -733,6 +767,97 @@
             else if (myChoice === 'escape' && opponentChoice === 'escape') {
                 triggerEndScreen("🤝 BATTLE ABANDONED 🤝", "Both pilots agreed to live to fight another day and headed back to base. The match ends in a mutual draw.");
             }
+        }
+
+        // ========================================================
+        // TUTORIAL DATABASE SLIDESHOW CONFIGURATION
+        // ========================================================
+        const tutorialSlides = [
+            {
+                image: "tutorial/tutorial_1.jpg",
+                text: "<strong>Step 1: Synchronize</strong><br>Both players start on the exact same page number (typically Page 170). The image box displays what you see looking through your cockpit directly at the enemy plane."
+            },
+            {
+                image: "tutorial/tutorial_2.jpg",
+                text: "<strong>Step 2: Choose Maneuver</strong><br>Use the flight dashboard to select your Speed (Slow, Cruising, Fast) and Direction (Left, Straight, Right). This filters down to the exact move arrow you wish to choose."
+            },
+            {
+                image: "tutorial/tutorial_3.jpg",
+                text: "<strong>Step 3: Swap Mid-Turn Codes</strong><br>Once an option is tapped, read your generated code out loud to your opponent, and type their code into your input box. The devices cross-reference instantly to determine the end turn page!"
+            },
+            {
+                image: "tutorial/tutorial_4.jpg",
+                text: "<strong>Step 4: Resolve combat results</strong><br>Both screens jump in perfect sync to the next page. If a pilot is shot or tailed, the app logs damage, updates stats, and sends alerts to your dashboard!"
+            },
+            {
+                image: "tutorial/tutorial_5.jpg",
+                text: "<strong>Step 5: Stats</strong><br>The top of the screen shows your pilot nationality, page number, and damage to your plane and your enemy's plane."
+            },
+            {
+                image: "tutorial/tutorial_6.jpg",
+                text: "<strong>Step 6: Victory</strong><br>Each of you have 6 hitpoints and the first person to get shot down loses."
+            },
+            {
+                image: "tutorial/tutorial_7.jpg",
+                text: "<strong>Step 7: Flying Out of Sight</strong><br>If you lose sight of each other it will ask you whether you want to Search for the enemy or Escape."
+            }
+        ];
+
+        let currentTutorialIndex = 0;
+
+        // Universal Screen Swapping Manager Utility
+        function navigateTo(targetScreenId) {
+            // Hide all structural panels safely
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(s => s.classList.remove('active'));
+            
+            // Unveil targeted dashboard screen element node
+            document.getElementById(targetScreenId).classList.add('active');
+        }
+
+        // Initializing Flight School
+        function openTutorial() {
+            currentTutorialIndex = 0;
+            navigateTo('tutorial-screen');
+            renderTutorialFrame();
+        }
+
+        function renderTutorialFrame() {
+            const slide = tutorialSlides[currentTutorialIndex];
+            
+            // Update image and text blocks
+            document.getElementById('tutorial-img').src = slide.image;
+            document.getElementById('tutorial-text').innerHTML = slide.text;
+            
+            // Handle status header updates
+            document.getElementById('tut-progress-indicator').innerText = `${currentTutorialIndex + 1} / ${tutorialSlides.length}`;
+            
+            // Tweak action button headers on the last frame to offer a clean exit
+            const nextBtn = document.getElementById('tut-next-btn');
+            if (currentTutorialIndex === tutorialSlides.length - 1) {
+                nextBtn.innerText = "🏁 FINISH";
+                nextBtn.style.background = "#28a745";
+                nextBtn.style.borderColor = "#1e7e34";
+            } else {
+                nextBtn.innerText = "Next ➡";
+                nextBtn.style.background = "#007bff";
+                nextBtn.style.borderColor = "#0056b3";
+            }
+            
+            // Toggle active display boundaries on back navigation controls
+            document.getElementById('tut-prev-btn').style.visibility = (currentTutorialIndex === 0) ? 'hidden' : 'visible';
+        }
+
+        function changeTutorialPage(directionModifier) {
+            currentTutorialIndex += directionModifier;
+            
+            // If the index pushes past the array limits, exit out back to the main menu screen
+            if (currentTutorialIndex < 0 || currentTutorialIndex >= tutorialSlides.length) {
+                navigateTo('main-menu-screen');
+                return;
+            }
+            
+            renderTutorialFrame();
         }
 
     </script>
