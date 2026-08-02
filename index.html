@@ -493,6 +493,24 @@
                     console.error(`DATA ERROR [${roleLabel.toUpperCase()} BOOK]: Page ${pageNum} contains ${midTurnsArray.length} codes instead of 26!`);
                     return;
                 }
+                //Safeguard against similar numbers
+                const seenNumbers = new Set();
+                for (let num of midTurnsArray) {
+                    if (num !== 223) { //Allows 223 to repeat
+                        if (seenNumbers.has(num)) {
+                            console.error(`DUPLICATE ERROR [${roleLabel.toUpperCase()} BOOK]: Page ${pageNum} has a repeating number (${num}) on the same row!`);
+                            return;
+                        }
+                        seenNumbers.add(num);
+                    }
+                }
+                
+                //Safeguard against numbers bigger than 223
+                const outOfBoundsNumber = midTurnsArray.find(num => num > 223);
+                if (outOfBoundsNumber !== undefined) {
+                    console.error(`Bounds Error! [${roleLabel.toUpperCase()} BOOK]: Page ${pageNum} contains page number (${outOfBoundsNumber}) that exceeds the max value of 223.`);
+                    return;
+                }
                 
                 // Initialize structural mapping slots
                 if (!bookMatrices[roleLabel][pageNum]) {
