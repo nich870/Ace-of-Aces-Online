@@ -1,0 +1,218 @@
+=== RECONSTRUCTION QA REPORT ===
+
+Given (ground-truth) Allied pages: 18
+Fully reconstructed pages: 203 / 222
+Total cells known: 5672 / 5772 (98.3%)
+
+--- Pages still missing some cells (marked ?? in output) ---
+Page 115: missing columns [22, 23, 24] (fast_straight_1, fast_straight_2, fast_straight_3)
+Page 116: missing columns [2, 3, 8, 9, 12, 15, 16, 19, 20, 21, 22, 23, 24, 25, 26] (slow_left_2, slow_left_3, slow_right_2, slow_right_3, cruising_left_3, cruising_straight_3, cruising_straight_4, cruising_right_3, fast_left_1, fast_left_2, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+Page 117: missing columns [8, 9, 16, 19, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_right_1, fast_right_2)
+Page 122: missing columns [2, 3, 12, 15, 20, 21, 22, 23, 24] (slow_left_2, slow_left_3, cruising_left_3, cruising_straight_3, fast_left_1, fast_left_2, fast_straight_1, fast_straight_2, fast_straight_3)
+Page 128: missing columns [12, 21] (cruising_left_3, fast_left_2)
+Page 129: missing columns [12, 21] (cruising_left_3, fast_left_2)
+Page 136: missing columns [19, 26] (cruising_right_3, fast_right_2)
+Page 137: missing columns [19, 26] (cruising_right_3, fast_right_2)
+Page 142: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+Page 143: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+Page 144: missing columns [19, 26] (cruising_right_3, fast_right_2)
+Page 148: missing columns [8, 9, 16, 19, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_right_1, fast_right_2)
+Page 149: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+Page 169: missing columns [19, 26] (cruising_right_3, fast_right_2)
+Page 179: missing columns [22, 23, 24] (fast_straight_1, fast_straight_2, fast_straight_3)
+Page 203: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+Page 204: missing columns [8, 9, 16, 19, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_right_1, fast_right_2)
+Page 221: missing columns [19, 26] (cruising_right_3, fast_right_2)
+Page 222: missing columns [19, 26] (cruising_right_3, fast_right_2)
+
+--- Cells flagged with conflicting derivations (majority vote used; verify against physical book) ---
+Page 16, col 6 (slow_straight_3): candidates {15: 3, 115: 1} -> used 15
+Page 213, col 11 (cruising_left_2): candidates {15: 4, 115: 1} -> used 15
+Page 79, col 9 (slow_right_3): candidates {190: 1, 109: 1} -> used 190
+Page 89, col 18 (cruising_right_2): candidates {126: 2, 123: 1} -> used 126
+Page 68, col 10 (cruising_left_1): candidates {109: 2, 190: 1} -> used 109
+Page 197, col 26 (fast_right_2): candidates {193: 2, 223: 1} -> used 193
+Page 57, col 3 (slow_left_3): candidates {193: 2, 223: 1} -> used 193
+Page 57, col 15 (cruising_straight_3): candidates {223: 1, 215: 2} -> used 215
+Page 206, col 21 (fast_left_2): candidates {182: 1, 180: 1} -> used 182
+Page 49, col 5 (slow_straight_2): candidates {121: 2, 129: 1} -> used 121
+Page 42, col 17 (cruising_right_1): candidates {15: 1, 115: 1} -> used 15
+Page 32, col 20 (fast_left_1): candidates {190: 1, 109: 15} -> used 109
+Page 95, col 10 (cruising_left_1): candidates {222: 8, 223: 1} -> used 222
+Page 29, col 26 (fast_right_2): candidates {215: 14, 223: 1} -> used 215
+Page 6, col 16 (cruising_straight_4): candidates {109: 14, 190: 1} -> used 109
+Page 65, col 6 (slow_straight_3): candidates {182: 10, 180: 1} -> used 182
+Page 36, col 8 (slow_right_2): candidates {129: 1, 121: 2} -> used 121
+Page 36, col 23 (fast_straight_2): candidates {222: 8, 223: 1} -> used 222
+Page 56, col 7 (slow_right_1): candidates {215: 11, 223: 1} -> used 215
+Page 45, col 25 (fast_right_1): candidates {215: 13, 223: 1} -> used 215
+Page 126, col 21 (fast_left_2): candidates {193: 14, 223: 1} -> used 193
+Page 126, col 25 (fast_right_1): candidates {15: 16, 115: 1} -> used 15
+Page 31, col 9 (slow_right_3): candidates {222: 4, 223: 1} -> used 222
+Page 219, col 25 (fast_right_1): candidates {109: 9, 190: 1} -> used 109
+Page 84, col 6 (slow_straight_3): candidates {222: 3, 223: 1} -> used 222
+Page 73, col 16 (cruising_straight_4): candidates {222: 4, 223: 1} -> used 222
+Page 218, col 17 (cruising_right_1): candidates {109: 14, 190: 1} -> used 109
+Page 141, col 1 (slow_left_1): candidates {121: 4, 129: 1} -> used 121
+Page 137, col 14 (cruising_straight_2): candidates {121: 2, 129: 1} -> used 121
+Page 180, col 1 (slow_left_1): candidates {175: 1, 223: 4} -> used 223
+Page 180, col 5 (slow_straight_2): candidates {181: 1, 223: 4} -> used 223
+Page 123, col 1 (slow_left_1): candidates {192: 1, 223: 2} -> used 223
+Page 123, col 5 (slow_straight_2): candidates {157: 1, 223: 2} -> used 223
+Page 123, col 6 (slow_straight_3): candidates {42: 1, 154: 5} -> used 154
+Page 123, col 7 (slow_right_1): candidates {54: 1, 160: 5} -> used 160
+Page 123, col 8 (slow_right_2): candidates {22: 1, 223: 4} -> used 223
+Page 123, col 9 (slow_right_3): candidates {34: 1, 223: 4} -> used 223
+Page 123, col 10 (cruising_left_1): candidates {90: 1, 223: 4} -> used 223
+Page 123, col 11 (cruising_left_2): candidates {78: 1, 223: 4} -> used 223
+Page 123, col 13 (cruising_straight_1): candidates {102: 1, 223: 4} -> used 223
+Page 123, col 14 (cruising_straight_2): candidates {66: 1, 223: 4} -> used 223
+Page 123, col 16 (cruising_straight_4): candidates {10: 1, 223: 4} -> used 223
+Page 123, col 17 (cruising_right_1): candidates {43: 1, 223: 4} -> used 223
+Page 123, col 18 (cruising_right_2): candidates {55: 1, 223: 4} -> used 223
+Page 123, col 25 (fast_right_1): candidates {15: 1, 223: 4} -> used 223
+Page 174, col 13 (cruising_straight_1): candidates {121: 5, 129: 1} -> used 121
+Page 173, col 14 (cruising_straight_2): candidates {222: 5, 223: 1} -> used 222
+Page 129, col 6 (slow_straight_3): candidates {39: 5, 38: 1} -> used 39
+Page 129, col 7 (slow_right_1): candidates {51: 5, 50: 1} -> used 51
+Page 129, col 8 (slow_right_2): candidates {52: 5, 135: 1} -> used 52
+Page 129, col 9 (slow_right_3): candidates {87: 5, 117: 1} -> used 87
+Page 129, col 10 (cruising_left_1): candidates {154: 5, 116: 1} -> used 154
+Page 129, col 11 (cruising_left_2): candidates {148: 5, 143: 1} -> used 148
+Page 129, col 13 (cruising_straight_1): candidates {160: 5, 122: 1} -> used 160
+Page 129, col 14 (cruising_straight_2): candidates {169: 5, 137: 1} -> used 169
+Page 129, col 16 (cruising_straight_4): candidates {98: 5, 123: 1} -> used 98
+Page 129, col 17 (cruising_right_1): candidates {166: 5, 128: 1} -> used 166
+Page 129, col 18 (cruising_right_2): candidates {130: 5, 134: 1} -> used 130
+Page 129, col 19 (cruising_right_3): candidates {14: 5, 97: 1} -> used 14
+Page 129, col 22 (fast_straight_1): candidates {161: 4, 223: 1} -> used 161
+Page 129, col 23 (fast_straight_2): candidates {155: 4, 223: 1} -> used 155
+Page 129, col 24 (fast_straight_3): candidates {167: 4, 223: 1} -> used 167
+Page 129, col 25 (fast_right_1): candidates {40: 5, 129: 1} -> used 40
+Page 129, col 26 (fast_right_2): candidates {21: 5, 39: 1} -> used 21
+Page 60, col 21 (fast_left_2): candidates {223: 3, 175: 1} -> used 223
+
+--- Cells derived from only a single independent path (lower confidence, not cross-verified) ---
+Page 6: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 9: cols [2, 3, 15, 20, 22, 23, 24] (single-path derivation)
+Page 12: cols [12, 21] (single-path derivation)
+Page 13: cols [12, 21] (single-path derivation)
+Page 18: cols [12, 21] (single-path derivation)
+Page 19: cols [6, 7, 8, 9, 16, 19, 25, 26] (single-path derivation)
+Page 20: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 22: cols [2, 3, 12, 15, 20, 21, 22, 23, 24] (single-path derivation)
+Page 25: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 26: cols [19, 26] (single-path derivation)
+Page 27: cols [19, 26] (single-path derivation)
+Page 28: cols [12, 21] (single-path derivation)
+Page 33: cols [12, 21] (single-path derivation)
+Page 42: cols [17] (single-path derivation)
+Page 43: cols [19, 26] (single-path derivation)
+Page 44: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 45: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 46: cols [22, 23, 24] (single-path derivation)
+Page 47: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21] (single-path derivation)
+Page 48: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 49: cols [2, 3, 15, 20, 22, 23, 24] (single-path derivation)
+Page 50: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 53: cols [19, 26] (single-path derivation)
+Page 54: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 56: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 59: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 60: cols [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 25, 26] (single-path derivation)
+Page 62: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 69: cols [1, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 18, 19, 25, 26] (single-path derivation)
+Page 72: cols [6, 7, 8, 9, 16, 25] (single-path derivation)
+Page 73: cols [19, 26] (single-path derivation)
+Page 74: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 79: cols [9, 12, 21] (single-path derivation)
+Page 82: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 85: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26] (single-path derivation)
+Page 89: cols [12, 21] (single-path derivation)
+Page 90: cols [12, 21] (single-path derivation)
+Page 92: cols [19, 26] (single-path derivation)
+Page 94: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 95: cols [8, 9, 16, 19, 25, 26] (single-path derivation)
+Page 96: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 97: cols [12, 21] (single-path derivation)
+Page 99: cols [12, 21] (single-path derivation)
+Page 101: cols [12, 21] (single-path derivation)
+Page 102: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 104: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 106: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 107: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 108: cols [22, 23, 24] (single-path derivation)
+Page 114: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26] (single-path derivation)
+Page 115: cols [2, 3, 8, 9, 12, 15, 16, 20, 21, 25] (single-path derivation)
+Page 116: cols [10, 11, 13, 14, 17, 18] (single-path derivation)
+Page 117: cols [2, 3, 15, 20] (single-path derivation)
+Page 119: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 121: cols [2, 3, 12, 15, 20, 21, 22, 23, 24] (single-path derivation)
+Page 122: cols [1, 5] (single-path derivation)
+Page 123: cols [2, 3, 12, 15, 20, 21, 22, 23, 24] (single-path derivation)
+Page 125: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 127: cols [12, 21] (single-path derivation)
+Page 130: cols [19, 26] (single-path derivation)
+Page 131: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 133: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 135: cols [19, 26] (single-path derivation)
+Page 136: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 137: cols [6, 7, 8, 9, 16, 25] (single-path derivation)
+Page 138: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26] (single-path derivation)
+Page 139: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 142: cols [1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21] (single-path derivation)
+Page 143: cols [1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21] (single-path derivation)
+Page 144: cols [1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25] (single-path derivation)
+Page 148: cols [22, 23, 24] (single-path derivation)
+Page 149: cols [1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21] (single-path derivation)
+Page 150: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 152: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 153: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 154: cols [2, 3, 12, 15, 20, 21, 22, 23, 24] (single-path derivation)
+Page 155: cols [2, 3, 12, 15, 20, 21, 22, 23, 24] (single-path derivation)
+Page 156: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 157: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 158: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 160: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 161: cols [12, 21] (single-path derivation)
+Page 162: cols [12, 21] (single-path derivation)
+Page 163: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 164: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 165: cols [12, 21] (single-path derivation)
+Page 167: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 168: cols [12, 21] (single-path derivation)
+Page 169: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 173: cols [12, 21] (single-path derivation)
+Page 175: cols [6, 7, 8, 9, 16, 19, 25, 26] (single-path derivation)
+Page 177: cols [6, 7, 8, 9, 16, 25] (single-path derivation)
+Page 178: cols [1, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 16, 17, 18, 19, 21, 25, 26] (single-path derivation)
+Page 179: cols [2, 3, 12, 15, 20, 21] (single-path derivation)
+Page 180: cols [2, 3, 12, 15, 20, 21, 22, 23, 24] (single-path derivation)
+Page 182: cols [1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 25, 26] (single-path derivation)
+Page 183: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 184: cols [2, 3, 15, 20, 22, 23, 24] (single-path derivation)
+Page 185: cols [21] (single-path derivation)
+Page 186: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 188: cols [12, 21] (single-path derivation)
+Page 190: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 191: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 192: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26] (single-path derivation)
+Page 193: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 195: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26] (single-path derivation)
+Page 196: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 199: cols [6, 7, 8, 9, 16, 19, 25, 26] (single-path derivation)
+Page 201: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 202: cols [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 204: cols [22, 23, 24] (single-path derivation)
+Page 206: cols [6, 7, 8, 9, 16, 19, 21, 22, 23, 24, 25, 26] (single-path derivation)
+Page 207: cols [8, 9, 16, 19, 22, 23, 24, 25, 26] (single-path derivation)
+Page 209: cols [19, 26] (single-path derivation)
+Page 211: cols [2, 3, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26] (single-path derivation)
+Page 212: cols [2, 3, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26] (single-path derivation)
+Page 213: cols [12, 21] (single-path derivation)
+Page 215: cols [2, 3, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26] (single-path derivation)
+Page 216: cols [2, 3, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26] (single-path derivation)
+Page 217: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 219: cols [1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24] (single-path derivation)
+Page 220: cols [2, 3, 6, 7, 10, 11, 13, 14, 15, 17, 18, 20] (single-path derivation)
+Page 221: cols [22, 23, 24] (single-path derivation)
