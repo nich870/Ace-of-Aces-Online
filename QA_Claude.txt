@@ -17,18 +17,17 @@ Total cells known: 5672 / 5772 (98.3%)
 ^^^Page 143: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
 ^^^Page 144: missing columns [19, 26] (cruising_right_3, fast_right_2)
 ^^^Page 148: missing columns [8, 9, 16, 19, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_right_1, fast_right_2)
-Page 149: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
-Page 169: missing columns [19, 26] (cruising_right_3, fast_right_2)
-Page 179: missing columns [22, 23, 24] (fast_straight_1, fast_straight_2, fast_straight_3)
-Page 203: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
-Page 204: missing columns [8, 9, 16, 19, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_right_1, fast_right_2)
-Page 221: missing columns [19, 26] (cruising_right_3, fast_right_2)
-Page 222: missing columns [19, 26] (cruising_right_3, fast_right_2)
+^^^Page 149: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+^^^Page 169: missing columns [19, 26] (cruising_right_3, fast_right_2)
+^^^Page 179: missing columns [22, 23, 24] (fast_straight_1, fast_straight_2, fast_straight_3)
+^^^Page 203: missing columns [8, 9, 16, 19, 22, 23, 24, 25, 26] (slow_right_2, slow_right_3, cruising_straight_4, cruising_right_3, fast_straight_1, fast_straight_2, fast_straight_3, fast_right_1, fast_right_2)
+^^^Page 221: missing columns [19, 26] (cruising_right_3, fast_right_2)
+^^^Page 222: missing columns [19, 26] (cruising_right_3, fast_right_2)
 
 --- Cells flagged with conflicting derivations (majority vote used; verify against physical book) ---
-Page 16, col 6 (slow_straight_3): candidates {15: 3, 115: 1} -> used 15
-Page 213, col 11 (cruising_left_2): candidates {15: 4, 115: 1} -> used 15
-Page 79, col 9 (slow_right_3): candidates {190: 1, 109: 1} -> used 190
+^Page 16, col 6 (slow_straight_3): candidates {15: 3, 115: 1} -> used 15
+^Page 213, col 11 (cruising_left_2): candidates {15: 4, 115: 1} -> used 15
+Page 79, col 9 (slow_right_3): candidates {190: 1, 109: 1} -> used 190 # error: use 109
 Page 89, col 18 (cruising_right_2): candidates {126: 2, 123: 1} -> used 126
 Page 68, col 10 (cruising_left_1): candidates {109: 2, 190: 1} -> used 109
 Page 197, col 26 (fast_right_2): candidates {193: 2, 223: 1} -> used 193
