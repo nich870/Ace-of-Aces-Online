@@ -1048,7 +1048,7 @@
 
             // Safety verification if opponent's final page is 223, end game
             if (finalPageNum === 223) {
-                triggerGameOver("Both planes have drifted out of sight!");
+                triggerScoutingDilemma();
                 return;
             }
 
