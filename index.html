@@ -27,20 +27,54 @@
             <h1 style="color: #ffcc00; margin-bottom: 5px;">ACE OF ACES</h1>
             <p style="font-style: italic; color: #aaa; margin-top: 0; font-size: 0.9em;">WWI Aerial Combat Simulator</p>
             
-            <div style="margin: 40px 0;">
-                <button class="btn btn-action" onclick="navigateTo('setup-screen')" style="width: 85%; padding: 15px; font-size: 1.1em; margin-bottom: 15px;">START MISSION</button>
-                <button class="btn" onclick="openTutorial()" style="width: 85%; padding: 15px; font-size: 1.1em; background: #3a3a4a; border-color: #5a5a6a;">LEARN TO PLAY</button>
+            <div style="margin: 30px 0;">
+                <button class="btn btn-action" onclick="openPilotLog()" style="width: 85%; padding: 15px; font-size: 1.1em; margin-bottom: 15px;">START MISSION</button>
+                <button class="btn" onclick="openTutorial()" style="width: 85%; padding: 15px; font-size: 1.1em; background: #3a3a4a; border-color: #5a5a6a; margin-bottom: 15px;">LEARN TO PLAY</button>
+                <button class="btn" onclick="openGraveyard()" style="width: 85%; padding: 12px; font-size: 1.0em; background: #222; border-color: #444; color: #777;">DECEASED PILOT LOG</button>
             </div>
             <p style="font-size: 0.75em; color: #666; margin-top: 50px;">Private Companion Application</p>
         </div>
 
-        <!-- Screen 1: Role Setup (Modified to include a back button) -->
+        <!-- Screen 0.5: Active Pilot Log Roster View -->
+         <div id="pilot-log-screen" class="screen" style="max-width: 450px; margin: 0 auto; text-align: center;">
+            <h2>Pilot Log (Active Duty)</h2>
+            <p style="font-size:0.9em; color:#aaa;">Select your pilot or enlist a new rookie:</p>
+
+            <!-- Active Pilots Inject Here-->
+            <div id="active-pilots-list" style="margin: 20px 0; max-height: 200px; overflow-y: auto;"></div>
+
+            <div class="step-box" style="background:#2a2a2a; border-color:#444; padding:15px; border-radius:8px; margin-top:20px;">
+                <h4 style="margin:0 0 10px 0; color:#ffcc00;">Enlist New Pilot</h4>
+                <input type="text" id="new-pilot-name" placeholder="Pilot Name" style="width:80%; padding:8px; border-radius:4px; border:1px solid #555; background:#111; color:#fff; text-align:center;"><br><br>
+                <button class="btn btn-action" onclick="createPilot()" style="width:85%; padding:8px; margin:0;">Enlist & Save</button>
+            </div>
+            <hr style="border-color:#333; margin:20px 0;">
+            <button class="btn" onclick="navigateTo('main-menu-screen')" style="background:#444; width:50%;">⬅ Main Menu</button>
+         </div>
+
+        
+        
+
+        <!-- Screen 1: Role Setup (Attaches nationality to pilot) -->
         <div id="setup-screen" class="screen">
-            <p>Choose your side to configure your specific digital flight book:</p>
-            <button class="btn btn-action" onclick="chooseRole('allied')">Allied Pilot</button>
-            <button class="btn btn-action" onclick="chooseRole('german')">German Pilot</button>
+            <h3>Assign Squad Role</h3>
+            <p>Assigning nationality for Pilot: <strong id="assigned-pilot-display" style="color:#ffcc00;">-</strong></p>
+            <button class="btn btn-action" onclick="confirmPilotRole('allied')" style="background:#0056b3;">Allied Pilot</button>
+            <button class="btn btn-action" onclick="confrimPilotRole('german')" style="background:#b32424;">German Pilot</button>
             <hr style="border-color:#333; margin: 20px auto; max-width: 85%;">
-            <button class="btn" onclick="navigateTo('main-menu-screen')" style="background: #444; font-size: 0.9em; width: 50%;">⬅ Main Menu</button>
+            <button class="btn" onclick="openPilotLog()" style="background: #444; width: 50%;">⬅ Change Pilot</button>
+        </div>
+
+        <!-- Graveyard Log View -->
+        <div id="graveyard-screen" class="screen" style="max-width: 450px; margin: 0 auto; text-align: center;">
+            <h2 style="color:#ff3333;">Deceased Pilot Log</h2>
+            <p style="font-size:0.9em; color:#888; font-style:italic;">In memory of those who fell in defense of their cause:</p>
+
+            <!-- Fallen Pilots Inject Here-->
+            <div id="graveyard-pilots-list" style="margin: 20px 0; max-height: 300px; overflow-y: auto; text-align: left;"></div>
+
+            <hr style="border-color:#333; margin:20px 0;">
+            <button class="btn" onclick="navigateTo('main-menu-screen')" style="background: #444; width: 50%;">⬅ Main Menu</button>
         </div>
 
         <!-- Screen 1.5: Interactive Tutorial Slideshow Wizard -->
