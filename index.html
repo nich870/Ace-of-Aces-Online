@@ -59,8 +59,18 @@
         <div id="setup-screen" class="screen">
             <h3>Assign Squad Role</h3>
             <p>Assigning nationality for Pilot: <strong id="assigned-pilot-display" style="color:#ffcc00;">-</strong></p>
+
+            <!-- Opponent Ace Checkbox -->
+            <div style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 8px; max-width: 85%; margin: 15px auto; text-align: left; display: flex; align-items: center; justify-content: space-between;">
+                <label for="opp-ace-toggle" style="font-size: 0.9em; color: #eee; cursor: pointer; display: flex; flex-direction: column;">
+                    <strong>ELITE TARGET DETECTION</strong>
+                    <span style="font-size:0.75em; color:#aaa; margin-top:2px;">Check this if your opponent is an ACE!</span>
+                </label>
+                <input type="checkbox" id="opp-ace-toggle" style="width: 20px; height: 20px; cursor: pointer;">
+            </div>
+
             <button class="btn btn-action" onclick="confirmPilotRole('allied')" style="background:#0056b3;">Allied Pilot</button>
-            <button class="btn btn-action" onclick="confrimPilotRole('german')" style="background:#b32424;">German Pilot</button>
+            <button class="btn btn-action" onclick="confirmPilotRole('german')" style="background:#b32424;">German Pilot</button>
             <hr style="border-color:#333; margin: 20px auto; max-width: 85%;">
             <button class="btn" onclick="openPilotLog()" style="background: #444; width: 50%;">⬅ Change Pilot</button>
         </div>
@@ -167,6 +177,7 @@
             currentPage: 170,
             damage: 0,
             opponentDamage: 0, // Tracks opponent's damage so you know when game ends
+            opponentIsAce: false, // Tracks if the enemy is an ace
             victoryPoints: 0, //Tracks scenario points and adds to a pilot log if created
             mySelectedMove: null,
             myMidTurnCode: null,
@@ -801,7 +812,20 @@
                 btn.style.width = "85%";
                 btn.style.background = "#2a2a3a";
                 btn.style.borderColor = "#4a4a5a";
-                btn.innerHTML = `<strong>${pilot.name}</strong> - [${pilot.vp} VP]`;
+                btn.style.textAlign = "left";
+                btn.style.padding = "10px 15px";
+
+                // Dynamic status checks if they are an Ace
+                const isAce = pilot.vp >= 5;
+                const aceBadge = isAce ? `<span style="color:#ffcc00; font-weight:bold;">ACE</span>` : `<span style="color:#aaa;">Rookie</span>`;
+                const roleBadge = pilot.role !== 'Unassigned' ? pilot.role.toUpperCase() : 'NEW';
+
+                btn.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>${pilot.name}</strong> [${roleBadge}]</span>
+                        <span>${pilot.vp} VP | ${aceBadge}</span>
+                    </div>
+                `;
                 btn.onclick = function() { selectPilotForFlight(index); };
                 listDiv.appendChild(btn);
             });
@@ -816,7 +840,8 @@
                 return;
             }
 
-            activePilots.push({ name: nameText, vp: 0});
+            // Pilots start with 0 VP and their faction role is unassigned until their first flight
+            activePilots.push({ name: nameText, vp: 0, role: 'Unassigned' });
             localStorage.setItem('ace-active-pilots', JSON.stringify(activePilots));
 
             nameInput.value = ""; // Clear input field
@@ -831,9 +856,17 @@
         }
 
         function confirmPilotRole(roleChoice) {
+            if (state.currentPilotIndex !== null) {
+                // Save the chosen role directly into the active pilot memory object layout
+                activePilots[state.currentPilotIndex].role = roleChoice;
+                localStorage.setItem('ace_active_pilots', JSON.stringify(activePilots));
+            }
             // Inject the active pilot name into tracking arrays
             state.role = roleChoice;
+
+            state.opponentIsAce = document.getElementById('opp-ace-toggle').checked;
             navigateTo('flight-screen');
+            document.getElementById('stat-role').innerText = roleChoice.toUpperCase();
             renderUI();
         }
 
@@ -865,6 +898,7 @@
 
         function renderUI() {
             // 1. Update cockpit headers
+            //document.getElementById('stat-role').innerText = state.role;
             document.getElementById('stat-page').innerText = state.currentPage;
             document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
             
@@ -876,18 +910,30 @@
             const activeEvents = specialPageEvents[state.role];
             const currentPage = state.currentPage;
 
+            // New Combat
+            const activePilotData = state.currentPilotIndex !== null ? activePilots[state.currentPilotIndex] : { vp: 0 };
+            const iAmAce = activePilotData.vp >= 5;
+
+            const opponentIsAce = state.opponentIsAce; // Change to a toggle switch to see if opponent has an Ace
+
             // Sub-logic 1: You are being shot
             if (activeEvents.damagePages && activeEvents.damagePages[currentPage]) {
-                const structuralHit = activeEvents.damagePages[currentPage];
-                // Apply damage to state data once!
+                let structuralHit = activeEvents.damagePages[currentPage];
+                let newHit = structuralHit
+                if (opponentIsAce) {
+                    if (structuralHit === 2) newHit = 3;
+                    else if (structuralHit === 1) newHit = 2;
+                    else if (structuralHit === 0.5) newHit = 1;
+                }
+
                 if (!state.damageProcessedForPage || state.damageProcessedForPage !== currentPage) {
-                    state.damage += structuralHit;
+                    state.damage += newHit;
                     document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
                 }
 
                 statusAlertHTML += `
                     <div style="background: #551111; color: #ff9999; border: 1px solid #ff3333; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-weight: bold; animation: blink 1s infinite;">
-                        !!! ALERT: DIRECT HIT !!! You sustained ${structuralHit} damage!
+                        !!! ALERT: DIRECT HIT !!! You sustained ${newHit} damage!
                     </div>
                 `;
             }
@@ -897,16 +943,22 @@
             const enemyEvents = specialPageEvents[opponentRole];
 
             if (enemyEvents.damagePages && enemyEvents.damagePages[currentPage]) {
-                const enemyHitValue = enemyEvents.damagePages[currentPage];
+                let enemyHitValue = enemyEvents.damagePages[currentPage];
+                let newHitValue = enemyHitValue
+                if (iAmAce) {
+                    if (enemyHitValue === 2) newHitValue = 3;
+                    else if (enemyHitValue === 1) newHitValue = 2;
+                    else if (enemyHitValue === 0.5) newHitValue = 1;
+                }
 
                 if (!state.enemyDmgProcessedForPage || state.enemyDmgProcessedForPage !== currentPage) {
-                    state.opponentDamage += enemyHitValue;
+                    state.opponentDamage += newHitValue;
                     document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
                 }
 
                 statusAlertHTML += `
                     <div style="background: #113355; color: #99ccff; border: 1px solid #3399ff; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-weight: bold;">
-                        HIT CONFIRMED! Your crosshairs lined up perfectly and you dealt ${enemyHitValue} damage to the enemy!
+                        HIT CONFIRMED! Your crosshairs lined up perfectly and you dealt ${newHitValue} damage to the enemy!
                     </div>
                 `;
             }
@@ -997,7 +1049,7 @@
                     <hr style="border-color:#333; margin:15px 0;">
                     <p style="margin:5px 0;"><strong>Final Battle Record:</strong></p>
                     <p style="font-size:0.95em; color:#aaa; margin:5px 0;">Your Damage: <strong>${state.damage}/6</strong> | Enemy Damage: <strong>${state.opponentDamage}/6</strong></p>
-                    <p style="font-size:0.95em; color:#aaafff; margin:5px 0;">You earned <strong>${state.victoryPoints}</strong> Victory Points</p>
+                    <p style="font-size:0.95em; color:#aaafff; margin:5px 0;">You now have <strong>${state.victoryPoints}</strong> Victory Points!</p>
                     <br>
                     <button class="btn btn-action" onclick="window.location.reload();" style="width:100%;">Return to Menu</button>
                 </div>
@@ -1367,6 +1419,20 @@
             if (state.currentPilotIndex === null) return;
 
             const fallenPilot = activePilots[state.currentPilotIndex];
+            const isAce = fallenPilot.vp >= 5;
+
+            // Ace Special Ability: 33% Emergency Survival roll
+            if (isAce) {
+                const survivalRoll = Math.random(); // Outputs a random number between 0.0 and 1.0
+
+                if (survivalRoll <= 0.33) {
+                    alert(`EMERGENCY BAILOUT SUCCESSFUL! ${fallenPilot.name} was shot down but their elite instincts allowed them to safely crash-land safely behind friendly lines. They survived to fly another day!`);
+
+                    // Clean up flight trackers but do not drop them into graveyard lists or slice them out!
+                    state.currentPilotIndex = null;
+                    return;
+                }
+            }
 
             // Add to graveyard along with role choice
             deceasedPilots.push({
