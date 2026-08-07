@@ -169,8 +169,13 @@
             opponentDamage: 0, // Tracks opponent's damage so you know when game ends
             victoryPoints: 0, //Tracks scenario points and adds to a pilot log if created
             mySelectedMove: null,
-            myMidTurnCode: null
+            myMidTurnCode: null,
+            currentPilotIndex: null
         };
+
+        //Initialize or pull roster variables from localStorage
+        let activePilots = JSON.parse(localStorage.getItem('ace_active_pilots')) || [];
+        let deceasedPilots = JSON.parse(localStorage.getItem('ace_deceased_pilots')) || [];
 
         // State parameters tracking current choices
         let wizardState = {
@@ -776,13 +781,86 @@
             });
         }
 
-        function chooseRole(selectedRole) {
-            state.role = selectedRole;
-            document.getElementById('setup-screen').classList.remove('active');
-            document.getElementById('flight-screen').classList.add('active');
-            
-            document.getElementById('stat-role').innerText = selectedRole.toUpperCase();
+        function openPilotLog() {
+            navigateTo('pilot-log-screen');
+            renderActivePilots();
+        }
+
+        function renderActivePilots() {
+            const listDiv = document.getElementById('active-pilots-list');
+            listDiv.innerHTML = "";
+
+            if (activePilots.length === 0) {
+                listDiv.innerHTML = `<p style="color:#666; font-style:italic;">No currently enlisted pilots.</p>`;
+                return;
+            }
+
+            activePilots.forEach((pilot, index) => {
+                const btn = document.createElement('button');
+                btn.className = "btn";
+                btn.style.width = "85%";
+                btn.style.background = "#2a2a3a";
+                btn.style.borderColor = "#4a4a5a";
+                btn.innerHTML = `<strong>${pilot.name}</strong> - [${pilot.vp} VP]`;
+                btn.onclick = function() { selectPilotForFlight(index); };
+                listDiv.appendChild(btn);
+            });
+        }
+
+        function createPilot() {
+            const nameInput = document.getElementById('new-pilot-name');
+            const nameText = nameInput.value.trim();
+
+            if (!nameText) {
+                alert("Please input a valid name for your pilot!");
+                return;
+            }
+
+            activePilots.push({ name: nameText, vp: 0});
+            localStorage.setItem('ace-active-pilots', JSON.stringify(activePilots));
+
+            nameInput.value = ""; // Clear input field
+            renderActivePilots();
+        }
+
+        function selectPilotForFlight(index) {
+            // This is next
+            state.currentPilotIndex = index;
+            navigateTo('setup-screen');
+            document.getElementById('assigned-pilot-display').innerText = activePilots[index].name;
+        }
+
+        function confirmPilotRole(roleChoice) {
+            // Inject the active pilot name into tracking arrays
+            state.role = roleChoice;
+            navigateTo('flight-screen');
             renderUI();
+        }
+
+        // Graveyard loader
+        function openGraveyard() {
+            navigateTo('graveyard-screen');
+            const listDiv = document.getElementById('graveyard-pilots-list');
+            listDiv.innerHTML = "";
+
+            if (deceasedPilots.length === 0) {
+                listDiv.innerHTML = `<p style="color:#666; font-style:italic; text-align:center;">No casualties recorded.</p>`;
+                return;
+            }
+
+            deceasedPilots.forEach(pilot => {
+                const row = document.createElement('div');
+                row.style.background = "#1a1a1a";
+                row.style.borderLeft = pilot.role === 'allied' ? "4px solid #0056b3" : "4px solid #b32424";
+                row.style.padding = "10px";
+                row.style.margin ="8px 0";
+                row.style.borderRadius = "4px";
+                row.innerHTML = `
+                    <span style="font-weight:bold; color:#eee;">${pilot.name}</span> <span style="font-size:0.8em; color:#666;">(${pilot.role.toUpperCase()})</span>
+                    <div style="font-size:0.85em; color:#aaa; margin-top:2px;">Honors Maintained: <strong>${pilot.vp} Victory Points</strong></div>
+                `;
+                listDiv.appendChild(row);
+            });
         }
 
         function renderUI() {
@@ -863,13 +941,15 @@
 
             // Check for damage that ends the game
             if (state.damage >= 6 && state.opponentDamage >= 6) {
+                handleActivePilotCasualty(); //Moves pilot to graveyard
                 triggerEndScreen("!!! MUTUAL DESTRUCTION !!!", "Both aircraft have been shot down simultaneously! The battle ends in a draw.");
                 return;
             } else if (state.damage >= 6) {
+                handleActivePilotCasualty();
                 triggerEndScreen("!!! SHOT DOWN !!!","Your plane has sustained too much damage and you went down in flames. The enemy gains 1 victory point.");
                 return;
             } else if (state.opponentDamage >= 6) {
-                state.victoryPoints += 1
+                applyActivePilotVictoryPoints(1.0); // Rewards 1 VP to winning pilot
                 triggerEndScreen("🏆 VICTORY 🏆", "You have successfully shot down the enemy! You gain 1 Victory Point.");
                 return;
             }
@@ -1170,7 +1250,7 @@
                 renderUI();
             } 
             else if (myChoice === 'search' && opponentChoice === 'escape') {
-                state.victoryPoints += 0.5;
+                applyActivePilotVictoryPoints(0.5);
                 triggerEndScreen("🏆 SKIES CLEARED 🏆", "You turned back to hunt, but the enemy fled! You score +0.5 Scenario Victory Points for successfully claiming the skies.");
             } 
             else if (myChoice === 'escape' && opponentChoice === 'search') {
@@ -1270,6 +1350,37 @@
             }
             
             renderTutorialFrame();
+        }
+
+        // Saves point rewards and commits databases of pilots to disk
+        function applyActivePilotVictoryPoints(pointsEarned) {
+            if (state.currentPilotIndex === null) return;
+
+            activePilots[state.currentPilotIndex].vp += pointsEarned;
+            state.victoryPoints = activePilots[state.currentPilotIndex].vp; //Sync tracking variables
+
+            localStorage.setItem('ace_active_pilots', JSON.stringify(activePilots));
+        }
+
+        // Drops killed pilots into graveyard
+        function handleActivePilotCasualty() {
+            if (state.currentPilotIndex === null) return;
+
+            const fallenPilot = activePilots[state.currentPilotIndex];
+
+            // Add to graveyard along with role choice
+            deceasedPilots.push({
+                name: fallenPilot.name,
+                vp: fallenPilot.vp,
+                role: state.role
+            });
+            localStorage.setItem('ace_deceased_pilots', JSON.stringify(deceasedPilots));
+
+            // Splice them out of the active barracks
+            activePilots.splice(state.currentPilotIndex, 1);
+            localStorage.setItem('ace_active_pilots', JSON.stringify(activePilots));
+
+            state.currentPilotIndex = null; // Unbind index tracker locks
         }
 
     </script>
