@@ -60,18 +60,6 @@
             <h3>Assign Squad Role</h3>
             <p>Assigning nationality for Pilot: <strong id="assigned-pilot-display" style="color:#ffcc00;">-</strong></p>
 
-            <!-- Game Mode Selector -->
-            <div style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 8px; max-width: 85%; margin: 15px auto; text-align: left;">
-                <label style="font-size: 0.9em; color: #eee; display: block; margin-bottom: 8px;">
-                    <strong>GAME MODE</strong>
-                </label>
-                <div style="display:flex; gap:8px;">
-                    <button type="button" id="mode-btn-solo" class="btn" style="width:50%; margin:0; background:#007bff; border-color:#0056b3;" onclick="selectGameMode('solo')">🤖 Solo vs AI</button>
-                    <button type="button" id="mode-btn-two" class="btn" style="width:50%; margin:0; background:#444;" onclick="selectGameMode('twoPlayer')">👥 Two Player</button>
-                </div>
-                <p id="mode-description" style="font-size:0.75em; color:#aaa; margin: 8px 0 0;">Fly against a computer-controlled pilot on this device.</p>
-            </div>
-
             <!-- Opponent Ace Checkbox -->
             <div style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 8px; max-width: 85%; margin: 15px auto; text-align: left; display: flex; align-items: center; justify-content: space-between;">
                 <label for="opp-ace-toggle" style="font-size: 0.9em; color: #eee; cursor: pointer; display: flex; flex-direction: column;">
@@ -81,8 +69,8 @@
                 <input type="checkbox" id="opp-ace-toggle" style="width: 20px; height: 20px; cursor: pointer;">
             </div>
 
-            <!-- AI Difficulty Selector (solo mode only) -->
-            <div id="ai-difficulty-panel" style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 8px; max-width: 85%; margin: 15px auto; text-align: left;">
+            <!-- AI Difficulty Selector -->
+            <div style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 8px; max-width: 85%; margin: 15px auto; text-align: left;">
                 <label for="ai-difficulty-select" style="font-size: 0.9em; color: #eee; cursor: pointer; display: block; margin-bottom: 8px;">
                     <strong>AI OPPONENT SKILL</strong>
                     <span style="font-size:0.75em; color:#aaa; display:block; margin-top:2px;">Choose how the computer pilot flies against you.</span>
@@ -93,8 +81,6 @@
                     <option value="ace">Ace (plays it safe, tough)</option>
                 </select>
             </div>
-
-            <p id="two-player-note" style="display:none; font-size:0.8em; color:#aaa; max-width:85%; margin:15px auto;">Both pilots share this one device (or each open the page on their own phone). After each maneuver you'll read your code out loud to your opponent and type in theirs.</p>
 
             <button class="btn btn-action" onclick="confirmPilotRole('allied')" style="background:#0056b3;">Allied Pilot</button>
             <button class="btn btn-action" onclick="confirmPilotRole('german')" style="background:#b32424;">German Pilot</button>
@@ -206,7 +192,6 @@
             mySelectedMove: null,
             myMidTurnCode: null,
             currentPilotIndex: null,
-            mode: 'solo', // 'solo' (vs AI) | 'twoPlayer' (pass-and-play / two devices)
             difficulty: 'veteran', // 'rookie' | 'veteran' | 'ace' - controls AI opponent strength
             // -- AI turn-flow bookkeeping (tailing reveal rules) --
             playerAnnouncedCategory: null, // {speed, direction} the player revealed while being tailed
@@ -1065,30 +1050,6 @@
             state.currentPilotIndex = index;
             navigateTo('setup-screen');
             document.getElementById('assigned-pilot-display').innerText = activePilots[index].name;
-            selectGameMode(state.mode || 'solo'); // reset the mode UI to match current default
-        }
-
-        function selectGameMode(mode) {
-            state.mode = mode;
-            const soloBtn = document.getElementById('mode-btn-solo');
-            const twoBtn = document.getElementById('mode-btn-two');
-            const diffPanel = document.getElementById('ai-difficulty-panel');
-            const twoNote = document.getElementById('two-player-note');
-            const desc = document.getElementById('mode-description');
-
-            if (mode === 'solo') {
-                soloBtn.style.background = '#007bff'; soloBtn.style.borderColor = '#0056b3';
-                twoBtn.style.background = '#444'; twoBtn.style.borderColor = '#666';
-                diffPanel.style.display = 'block';
-                twoNote.style.display = 'none';
-                desc.innerText = 'Fly against a computer-controlled pilot on this device.';
-            } else {
-                twoBtn.style.background = '#007bff'; twoBtn.style.borderColor = '#0056b3';
-                soloBtn.style.background = '#444'; soloBtn.style.borderColor = '#666';
-                diffPanel.style.display = 'none';
-                twoNote.style.display = 'block';
-                desc.innerText = 'Two human pilots, passing the device (or each on their own phone).';
-            }
         }
 
         function confirmPilotRole(roleChoice) {
@@ -1279,24 +1240,13 @@
                 return;
             }
 
-            stageSwap.style.display = 'none';
-            stageSwap.classList.remove('active');
-
-            if (state.mode === 'twoPlayer') {
-                // Two humans can just talk out loud, so no automated direction-reveal steps --
-                // the tailing/being-tailed reminder already shows as an alert banner in renderUI().
-                stageTail.style.display = 'none';
-                stageTail.classList.remove('active');
-                stageSelect.style.display = 'block';
-                stageSelect.classList.add('active');
-                resetWizardToStart();
-                return;
-            }
-
             const aiRole = otherRole(state.role);
             const currentPage = state.currentPage;
             const playerIsBeingTailed = specialPageEvents[state.role].beingTailed.includes(currentPage);
             const playerIsTailing = specialPageEvents[state.role].tailingPages.includes(currentPage);
+
+            stageSwap.style.display = 'none';
+            stageSwap.classList.remove('active');
 
             if (playerIsBeingTailed) {
                 // Player must announce direction before picking their exact maneuver.
@@ -1516,26 +1466,18 @@
         }
 
         // Processing Execution -- player has locked in their exact maneuver.
+        // The AI now picks its own maneuver (automatically, using whatever info
+        // the tailing rules allowed it to have) and the turn resolves instantly.
         function submitFinalWizardMove(moveKey) {
             const currentPage = state.currentPage;
             const playerBook = bookMatrices[state.role];
+            const aiRole = otherRole(state.role);
+            const aiBook = bookMatrices[aiRole];
 
             if (!playerBook[currentPage] || playerBook[currentPage][moveKey] === undefined) {
                 alert(`Error: Move "${moveKey}" is not mapped yet for page ${currentPage}!`);
                 return;
             }
-
-            if (state.mode === 'twoPlayer') {
-                submitFinalWizardMoveTwoPlayer(moveKey, currentPage, playerBook);
-            } else {
-                submitFinalWizardMoveSolo(moveKey, currentPage, playerBook);
-            }
-        }
-
-        // ---- SOLO (vs AI) resolution ----
-        function submitFinalWizardMoveSolo(moveKey, currentPage, playerBook) {
-            const aiRole = otherRole(state.role);
-            const aiBook = bookMatrices[aiRole];
 
             // --- AI picks its maneuver ---
             let aiMove;
@@ -1597,101 +1539,6 @@
             renderUI();
         }
 
-        // ---- TWO PLAYER (pass & play / two devices) resolution ----
-        // This restores the original manual code-exchange flow: read your code
-        // out loud, wait for your opponent's code, type it in to resolve.
-        function submitFinalWizardMoveTwoPlayer(moveKey, currentPage, playerBook) {
-            const dynamicMidTurnValue = playerBook[currentPage][moveKey];
-
-            state.mySelectedMove = moveKey;
-            state.myMidTurnCode = dynamicMidTurnValue;
-
-            document.getElementById('stage-select').style.display = 'none';
-            document.getElementById('stage-select').classList.remove('active');
-
-            document.getElementById('stage-swap').innerHTML = `
-                <div class="step-box">
-                    <p><strong>1. Tell Opponent</strong>: "My Code is <span style="color:#ffcc00; font-weight:bold;">${dynamicMidTurnValue}</span>"</p>
-                    <p><strong>2. Get Code</strong>: Ask your opponent for their Code.</p>
-                </div>
-                <label for="opponent-code">Enter Opponent's Code: </label>
-                <input type="number" id="opponent-code" placeholder="???"><br><br>
-                <button class="btn btn-action" onclick="resolveTurnTwoPlayer()">Calculate End Turn Page</button>
-            `;
-            document.getElementById('stage-swap').style.display = 'block';
-            document.getElementById('stage-swap').classList.add('active');
-        }
-
-        function resolveTurnTwoPlayer() {
-            const oppCodeInput = document.getElementById('opponent-code').value;
-            const opponentMidTurn = parseInt(oppCodeInput, 10);
-
-            if (isNaN(opponentMidTurn)) {
-                alert("Please type in the page number your opponent called out!");
-                return;
-            }
-
-            if (opponentMidTurn === 223) {
-                // Condition 1: Both players got 223 as a code -- straight to the dilemma.
-                if (state.myMidTurnCode === 223) {
-                    state.currentPage = 223;
-                    triggerScoutingDilemma();
-                    return;
-                }
-                // Condition 2: Wait for your opponent's final page number calculation.
-                document.getElementById('stage-swap').innerHTML = `
-                    <div class="step-box" style="background: #4a1a1a; border-color: #f3333; padding: 12px; margin-bottom: 15px;">
-                        <p><strong>ENEMY OUT OF SIGHT!</strong></p>
-                        <p>You cannot calculate a route right now. Wait for your opponent to take your code (<em>${state.myMidTurnCode}</em>), resolve their page on their device, and give you their final page number.</p>
-                    </div>
-                    <label for="opponent-final-page">Enter Opponent's Final End-Turn Page: </label>
-                    <input type="number" id="opponent-final-page" placeholder="???"><br><br>
-                    <button class="btn btn-action" onclick="resolveForcedFollowPageTwoPlayer()">Sync to Final Page</button>
-                `;
-                return;
-            }
-
-            // Real physical game logic execution:
-            // "Turn to your opponent's mid-turn page, look up your own original move choice"
-            const currentBook = bookMatrices[state.role];
-
-            if (currentBook[opponentMidTurn] && currentBook[opponentMidTurn][state.mySelectedMove] !== undefined) {
-                const endTurnPage = currentBook[opponentMidTurn][state.mySelectedMove];
-
-                if (endTurnPage === 223) {
-                    state.currentPage = 223;
-                    triggerScoutingDilemma();
-                    return;
-                }
-
-                state.currentPage = endTurnPage;
-                renderUI();
-            } else {
-                alert("Maneuver path or page matrix not found! Returning to previous page.");
-                renderUI();
-            }
-        }
-
-        // Helps parse the manually entered page when code 223 is given
-        function resolveForcedFollowPageTwoPlayer() {
-            const finalInput = document.getElementById('opponent-final-page').value;
-            const finalPageNum = parseInt(finalInput, 10);
-
-            if (isNaN(finalPageNum)) {
-                alert("Please enter the final number opponent ended at!");
-                return;
-            }
-
-            state.currentPage = finalPageNum;
-
-            if (finalPageNum === 223) {
-                triggerScoutingDilemma();
-                return;
-            }
-
-            renderUI();
-        }
-
         // Renders clean game over -----------------------------> Add damage and search/escape to this later
         function triggerGameOver(reasonText) {
             document.getElementById('flight-screen').innerHTML = `
@@ -1746,24 +1593,10 @@
             return Math.random() < searchProbability ? 'search' : 'escape';
         }
 
-        // Step 2: In solo mode the AI immediately makes its own choice and we resolve
-        // right away; in two-player mode we ask the human to report their opponent's pick.
+        // Step 2: The AI immediately makes its own choice and we resolve right away.
         function submitDilemmaChoice(myChoice) {
-            const formattedChoice = myChoice.toUpperCase();
-
-            if (state.mode === 'twoPlayer') {
-                document.getElementById('stage-swap').innerHTML = `
-                    <div style="background: #2a2a3a; padding: 15px; border-radius: 8px; border: 1px solid #555; margin-top: 15px;">
-                        <h3 style="margin-top:0; color:#ffcc00;">YOU CHOSE: ${formattedChoice}</h3>
-                        <p>Now, look at your opponent's screen and input what <strong>THEY</strong> chose:</p>
-                        <button class="btn btn-action" onclick="calculateDilemmaOutcome('${myChoice}', 'search')" style="background:#28a745; border-color:#1e7e34; width:100%; margin:5px 0;">OPPONENT IS SEARCHING</button>
-                        <button class="btn btn-action" onclick="calculateDilemmaOutcome('${myChoice}', 'escape')" style="background:#dc3545; border-color:#bd2130; width:100%; margin:5px 0;">OPPONENT IS ESCAPING</button>
-                    </div>
-                `;
-                return;
-            }
-
             const opponentChoice = aiChooseDilemma();
+            const formattedChoice = myChoice.toUpperCase();
             const aiRole = otherRole(state.role);
 
             document.getElementById('stage-swap').innerHTML = `
