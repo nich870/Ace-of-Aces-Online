@@ -337,8 +337,21 @@
             return role === 'allied' ? 'german' : 'allied';
         }
 
+        // Per-difficulty personality knobs. Feel free to tune these directly --
+        // dealt/taken control how much the AI values landing a hit vs. avoiding one,
+        // tailBonus/tailedPenalty control how much it cares about position before a
+        // shot even happens, and worstFrac controls how paranoid it is (1.0 = judges
+        // a move by its average outcome; smaller = judges it more by its worst-case
+        // outcomes, i.e. more cautious). noise adds a bit of imperfection so the AI
+        // isn't a flawless calculator every single turn.
+        const AI_PROFILES = {
+            rookie:  { dealt: 10, taken: 10, tailBonus: 2,   tailedPenalty: 2,   shortRangeBonus: 0.5, noise: 5, worstFrac: 1.0 },
+            veteran: { dealt: 16, taken: 8,  tailBonus: 2,   tailedPenalty: 2,   shortRangeBonus: 1.5, noise: 3, worstFrac: 1.0 },
+            ace:     { dealt: 16, taken: 9,  tailBonus: 2.5, tailedPenalty: 2.5, shortRangeBonus: 1.5, noise: 1, worstFrac: 0.35 }
+        };
+
         // How good is landing on `page` for `forRole`? Positive = good for forRole.
-        function scorePageForRole(page, forRole) {
+        function scorePageForRole(page, forRole, profile) {
             if (page === 223) return -2; // contact lost; mildly unfavorable (forces the risky search/escape dilemma)
 
             const mine = specialPageEvents[forRole];
@@ -346,26 +359,54 @@
             let score = 0;
 
             if (mine.damagePages && mine.damagePages[page]) {
-                score -= mine.damagePages[page] * 12; // I get shot -- heavily avoid
+                score -= mine.damagePages[page] * profile.taken; // I get shot
             }
             if (theirs.damagePages && theirs.damagePages[page]) {
-                score += theirs.damagePages[page] * 12; // I land a shot -- heavily seek
+                score += theirs.damagePages[page] * profile.dealt; // I land a shot
             }
             if (mine.tailingPages && mine.tailingPages.includes(page)) {
-                score += 4; // I'm on their tail -- good position even without a shot yet
+                score += profile.tailBonus; // I'm on their tail -- good position even without a shot yet
             }
             if (mine.beingTailed && mine.beingTailed.includes(page)) {
-                score -= 4; // they're on my tail -- bad position
+                score -= profile.tailedPenalty; // they're on my tail -- bad position
             }
             if (page >= 1 && page <= 36) {
-                score += 0.5; // slight preference for closing to short range where fights get decided
+                score += profile.shortRangeBonus; // preference for closing to short range where fights get decided
             }
             return score;
         }
 
-        // Average (or worst-case) outcome for `forRole` flying `moveKey` on `currentPage`,
-        // considering every maneuver in `opponentCandidateMoves` the opponent might fly.
-        function evaluateMove(currentPage, forRole, moveKey, opponentCandidateMoves, mode) {
+        // Resolves the true final page for `forRole`, matching the two-player rule exactly:
+        // - If BOTH sides' codes come back 223, contact is genuinely lost -> the scouting dilemma.
+        // - If only ONE side's code is 223, that side can't look anything up in its own book
+        //   (there's no "page 223" to turn to), so it just syncs to whatever page the OTHER
+        //   side's book resolves to -- the automatic equivalent of asking your opponent
+        //   "what page did you end up on?" (resolveForcedFollowPageTwoPlayer, but instant).
+        // - If neither is 223, the normal own-book lookup is used.
+        function resolveFinalPageForRole(forRole, forMove, forCode, oppMove, oppCode) {
+            const forBook = bookMatrices[forRole];
+            const oppBook = bookMatrices[otherRole(forRole)];
+
+            if (forCode === 223 && oppCode === 223) {
+                return 223;
+            }
+            if (oppCode === 223) {
+                // Can't turn to page 223 in my own book -- borrow the result from the other book.
+                const landing = oppBook[forCode];
+                return (landing && landing[oppMove] !== undefined) ? landing[oppMove] : 223;
+            }
+            const landing = forBook[oppCode];
+            return (landing && landing[forMove] !== undefined) ? landing[forMove] : 223;
+        }
+
+        // Outcome for `forRole` flying `moveKey` on `currentPage`, considering every maneuver
+        // in `opponentCandidateMoves` the opponent might fly. For worstFrac == 1 this is a
+        // plain average (blind, even-odds guess at what the opponent will do). For worstFrac
+        // < 1 it's the average of that fraction of the WORST outcomes only -- cautious without
+        // being maximally paranoid (a true minimax assumes a perfectly-informed adversary,
+        // which made 'Ace' unrealistically skittish).
+        function evaluateMove(currentPage, forRole, moveKey, opponentCandidateMoves, difficulty) {
+            const profile = AI_PROFILES[difficulty] || AI_PROFILES.veteran;
             const forBook = bookMatrices[forRole];
             const oppRole = otherRole(forRole);
             const oppBook = bookMatrices[oppRole];
@@ -379,23 +420,24 @@
                 const oppCode = oppPageData ? oppPageData[oppMove] : undefined;
                 if (oppCode === undefined) continue;
 
-                let finalPage;
-                if (ownCode === 223 || oppCode === 223) {
-                    finalPage = 223;
-                } else {
-                    const landing = forBook[oppCode];
-                    finalPage = (landing && landing[moveKey] !== undefined) ? landing[moveKey] : 223;
-                }
-                scores.push(scorePageForRole(finalPage, forRole));
+                const finalPage = resolveFinalPageForRole(forRole, moveKey, ownCode, oppMove, oppCode);
+                scores.push(scorePageForRole(finalPage, forRole, profile));
             }
             if (scores.length === 0) return -9999;
 
-            if (mode === 'worst') return Math.min(...scores);
-            return scores.reduce((a, b) => a + b, 0) / scores.length; // average
+            if (profile.worstFrac < 1) {
+                scores.sort((a, b) => a - b);
+                const k = Math.max(1, Math.round(profile.worstFrac * scores.length));
+                const worstSlice = scores.slice(0, k);
+                return worstSlice.reduce((a, b) => a + b, 0) / worstSlice.length;
+            }
+            return scores.reduce((a, b) => a + b, 0) / scores.length;
         }
 
-        function difficultyMode(difficulty) {
-            return difficulty === 'ace' ? 'worst' : 'avg'; // Ace plays the defensive maximin line
+        // Small random jitter so the AI isn't a flawless calculator -- scaled per difficulty.
+        function withNoise(score, difficulty) {
+            const profile = AI_PROFILES[difficulty] || AI_PROFILES.veteran;
+            return score + (Math.random() - 0.5) * 2 * profile.noise;
         }
 
         // Full-move choice with no tailing info in play (both sides blind).
@@ -409,10 +451,9 @@
                 return available[Math.floor(Math.random() * available.length)];
             }
 
-            const mode = difficultyMode(difficulty);
             let best = null, bestScore = -Infinity;
             for (const m of available) {
-                const sc = evaluateMove(currentPage, aiRole, m, moveKeyIndexMap, mode);
+                const sc = withNoise(evaluateMove(currentPage, aiRole, m, moveKeyIndexMap, difficulty), difficulty);
                 if (sc > bestScore) { bestScore = sc; best = m; }
             }
             return best;
@@ -433,10 +474,9 @@
                 return available[Math.floor(Math.random() * available.length)];
             }
 
-            const mode = difficultyMode(difficulty);
             let best = null, bestScore = -Infinity;
             for (const m of Object.keys(pageData)) {
-                const sc = evaluateMove(currentPage, aiRole, m, candidatesToUse, mode);
+                const sc = withNoise(evaluateMove(currentPage, aiRole, m, candidatesToUse, difficulty), difficulty);
                 if (sc > bestScore) { bestScore = sc; best = m; }
             }
             return best;
@@ -448,7 +488,6 @@
             const aiBook = bookMatrices[aiRole];
             const pageData = aiBook[currentPage];
             if (!pageData) return null;
-            const mode = difficultyMode(difficulty);
 
             let bestCombo = null, bestScore = -Infinity;
             for (const [speed, direction] of ALL_CATEGORY_COMBOS) {
@@ -456,7 +495,7 @@
                 if (candidates.length === 0) continue;
                 let localBest = -Infinity;
                 for (const m of candidates) {
-                    const sc = evaluateMove(currentPage, aiRole, m, moveKeyIndexMap, mode);
+                    const sc = withNoise(evaluateMove(currentPage, aiRole, m, moveKeyIndexMap, difficulty), difficulty);
                     if (sc > localBest) localBest = sc;
                 }
                 if (localBest > bestScore) { bestScore = localBest; bestCombo = { speed, direction }; }
@@ -472,10 +511,9 @@
             const candidates = movesInCategory(pageData, category.speed, category.direction);
             if (candidates.length === 0) return aiChooseFullMove(currentPage, aiRole, difficulty);
 
-            const mode = difficultyMode(difficulty);
             let best = null, bestScore = -Infinity;
             for (const m of candidates) {
-                const sc = evaluateMove(currentPage, aiRole, m, moveKeyIndexMap, mode);
+                const sc = withNoise(evaluateMove(currentPage, aiRole, m, moveKeyIndexMap, difficulty), difficulty);
                 if (sc > bestScore) { bestScore = sc; best = m; }
             }
             return best;
@@ -521,7 +559,7 @@
         30 | 205.15.4.30.213.45.57.79.44.23.16.14.29.11.28.56.5.33.208.22.9.66.55.78.67.216
         31 | 47.112.178.31.59.95.37.174.222.108.106.186.48.83.202.204.60.71.142.220.212.203.221.179.180.115
         32 | 57.217.184.32.68.47.59.153.111.46.104.194.58.93.210.212.69.81.220.109.216.211.110.185.186.202
-        33 | 67.208.159.33.79.32.12.81.46.57.45.193.68.92.194.58.80.107.47.216.223.210.109.184.69.59
+        33 | 67.208.159.33.79.32.12.81.46.57.45.193.68.92.194.58.80.107.47.216.215.210.109.184.69.59
         34 | 78.56.103.34.90.209.198.17.6.5.29.192.33.23.79.32.11.16.25.67.214.68.57.80.12.31
         35 | 209.19.1.35.198.74.86.38.73.26.20.12.36.13.31.85.2.8.144.25.32.95.84.37.96.117
         36 | 25.106.60.36.31.85.96.121.136.84.72.59.95.61.48.142.37.49.143.108.47.204.222.180.115.116
@@ -911,7 +949,7 @@
         194 | 185.223.223.194.193.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223
         195 | 223.223.223.195.223.89.98.123.194.193.185.223.196.179.223.197.161.122.78.223.223.223.223.223.162.99
         196 | 223.223.223.196.223.197.162.223.223.223.223.223.223.223.223.223.223.223.214.223.223.223.223.223.223.189
-        197 | 223.223.223.197.223.214.189.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.190
+        197 | 223.223.223.197.223.214.189.223.223.223.223.223.223.223.223.223.223.223.215.223.223.223.223.223.223.190
         198 | 16.82.41.198.10.12.33.101.70.17.7.42.11.13.102.80.34.21.69.107.91.103.81.100.90.79
         199 | 223.223.223.199.223.200.176.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223
         200 | 223.223.223.200.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223.223
@@ -1560,15 +1598,10 @@
             state.mySelectedMove = moveKey;
             state.myMidTurnCode = playerCode;
 
-            let finalPage;
-            if (playerCode === 223 || aiCode === 223) {
-                finalPage = 223;
-            } else {
-                const landing = playerBook[aiCode];
-                finalPage = (landing && landing[moveKey] !== undefined) ? landing[moveKey] : 223;
-            }
+            const finalPage = resolveFinalPageForRole(state.role, moveKey, playerCode, aiMove, aiCode);
+            const forcedSync = (aiCode === 223 && playerCode !== 223); // your own book couldn't resolve it; synced via theirs
 
-            showAiTurnSummary(moveKey, playerCode, aiMove, aiCode, finalPage);
+            showAiTurnSummary(moveKey, playerCode, aiMove, aiCode, finalPage, forcedSync);
 
             state.currentPage = finalPage;
 
@@ -1578,16 +1611,22 @@
             document.getElementById('stage-swap').classList.add('active');
         }
 
-        function showAiTurnSummary(playerMove, playerCode, aiMove, aiCode, finalPage) {
+        function showAiTurnSummary(playerMove, playerCode, aiMove, aiCode, finalPage, forcedSync) {
             const aiRole = otherRole(state.role);
             const aiMoveLabel = aiMove.replace(/_/g, ' ').toUpperCase();
+            let outcomeMsg;
+            if (finalPage === 223) {
+                outcomeMsg = 'Contact lost -- both planes have flown out of sight of each other!';
+            } else if (forcedSync) {
+                outcomeMsg = `Your code came back out of range, so you sync to wherever the ${aiRole.toUpperCase()} pilot ended up: page <strong style="color:#ffcc00;">${finalPage}</strong>.`;
+            } else {
+                outcomeMsg = `Both planes synchronize to page <strong style="color:#ffcc00;">${finalPage}</strong>.`;
+            }
             document.getElementById('stage-swap').innerHTML = `
                 <div class="step-box">
                     <p><strong>You flew:</strong> ${playerMove.replace(/_/g, ' ').toUpperCase()} (code ${playerCode})</p>
                     <p><strong>${aiRole.toUpperCase()} pilot flew:</strong> ${aiMoveLabel} (code ${aiCode})</p>
-                    <p style="margin-top:10px;">${finalPage === 223
-                        ? 'Contact lost -- the enemy has flown out of sight!'
-                        : `Both planes synchronize to page <strong style="color:#ffcc00;">${finalPage}</strong>.`}</p>
+                    <p style="margin-top:10px;">${outcomeMsg}</p>
                 </div>
                 <button class="btn btn-action" onclick="continueAfterAiTurn()">Continue</button>
             `;
