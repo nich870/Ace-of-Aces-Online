@@ -1,0 +1,47 @@
+What each knob controls
+Knob	Effect	Raise it to...	Lower it to...
+dealt	Value of landing a hit	make the AI hunt shots more aggressively	make it less bloodthirsty
+taken	Cost of getting hit	make it more risk-averse	make it more reckless
+tailBonus	Value of being on your tail (before any shot)	make it chase position harder	make it care less about setup, more about the actual moment of firing
+tailedPenalty	Cost of being tailed (before any shot)	make it flee sooner when threatened	make it linger in bad spots longer
+shortRangeBonus	Preference for closing to short range (1–36)	make it a close-in brawler	make it comfortable sniping at long range
+noise	Random jitter on every move evaluation	make it sloppier/more human, more beatable	make it play closer to its theoretical best every turn
+worstFrac	How much of the outcome distribution it judges itself by (1.0 = full average, smaller = judges by its worst-case slice only)	make it more paranoid/cautious	make it more of a gambler, judging moves by their average outcome instead of worst case
+Some alternative presets to try
+
+Trigger-happy Ace — instead of cautious-but-lethal, an Ace that presses the attack recklessly:
+
+javascript
+ace: { dealt: 22, taken: 6, tailBonus: 4, tailedPenalty: 1.5, shortRangeBonus: 3, noise: 2, worstFrac: 1.0 }
+
+Turtle Veteran — if you flip the complaint and want a version that plays it safe rather than aggressive (good "easy defensive" mode):
+
+javascript
+veteran: { dealt: 9, taken: 14, tailBonus: 1.5, tailedPenalty: 4, shortRangeBonus: -0.5, noise: 3, worstFrac: 1.0 }
+
+(Note the negative shortRangeBonus — it actively prefers staying at range.)
+
+Sniper Ace — hangs back, only closes in when it has an edge, picks at you from distance rather than brawling:
+
+javascript
+ace: { dealt: 18, taken: 9, tailBonus: 2, tailedPenalty: 3, shortRangeBonus: -1, noise: 1, worstFrac: 0.5 }
+
+Chaotic Rookie — if even the current Rookie feels too competent in its "smart" 30% of moves:
+
+javascript
+rookie: { dealt: 8, taken: 12, tailBonus: 1, tailedPenalty: 1, shortRangeBonus: 0, noise: 8, worstFrac: 1.0 }
+
+(You could also just raise the 0.7 random-move chance in aiChooseFullMove/aiChooseFullMoveKnowingPlayerCategory — e.g., to 0.85 — for an even easier Rookie without touching weights at all.)
+
+Glass cannon Veteran — hits hard but is easy to punish if you catch it exposed:
+
+javascript
+veteran: { dealt: 20, taken: 5, tailBonus: 3, tailedPenalty: 1, shortRangeBonus: 2, noise: 4, worstFrac: 1.0 }
+
+Ace of Aces — the real deal — very tight worst-case reasoning but genuinely lethal when it commits, meant to feel like a top-tier human opponent rather than a defensive bot:
+
+javascript
+ace: { dealt: 20, taken: 8, tailBonus: 3, tailedPenalty: 2, shortRangeBonus: 2, noise: 0.5, worstFrac: 0.5 }
+A tip for dialing it in
+
+The fastest way to feel the effect of a change without replaying a bunch of games yourself: bump noise way up temporarily (like 15–20) for whichever difficulty you're testing — it'll make several games' worth of variety show up quickly, and you can watch whether the AI still "feels" aggressive/passive even with that randomness layered on top, which tells you whether the underlying weights are doing what you want before you dial the noise back down.
