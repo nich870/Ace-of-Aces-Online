@@ -17,6 +17,21 @@
         input[type="number"] { width: 80px; padding: 8px; font-size: 1.1em; text-align: center; border-radius: 4px; border: 1px solid #666; background: #333; color: #fff; }
         .screen { display: none; }
         .active { display: block; }
+        /* Screen Shake Trigger Class */
+        .shake-effect {
+            animation: hurt-shake 0.4s ease-in-out;
+        }
+
+        @keyframes hurt-shake {
+            0% { transform: translate(0, 0); }
+            15% { transform: translate(-8px, 4px) rotate(-1deg); }
+            30% { transform: translate(8px, -4px) rotate(1deg); }
+            45% { transform: translate(-6px, -2px) rotate(-1deg); }
+            60% { transform: translate(6px, 4px) rotate(1deg); }
+            75% { transform: translate(-4px, 2px); }
+            90% { transform: translate(2px, -2px); }
+            100% { transform: translate(0, 0); }
+        }
     </style>
 </head>
 <body>
@@ -1211,6 +1226,11 @@
                 if (!state.damageProcessedForPage || state.damageProcessedForPage !== currentPage) {
                     state.damage += newHit;
                     document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
+
+                    //Sensory feedback for damage
+                    triggerScreenShake();
+                    triggerHaptics('damage');
+                    playSoundFX('damage');
                 }
 
                 statusAlertHTML += `
@@ -1236,6 +1256,10 @@
                 if (!state.enemyDmgProcessedForPage || state.enemyDmgProcessedForPage !== currentPage) {
                     state.opponentDamage += newHitValue;
                     document.getElementById('stat-dmg').innerText = `My Plane: ${state.damage}/6 | Enemy's Plane: ${state.opponentDamage}/6`;
+
+                    // Sensory feedback for shooting the enemy
+                    triggerHaptics('hit-enemy');
+                    playSoundFX('hit-enemy');
                 }
 
                 statusAlertHTML += `
@@ -1276,14 +1300,20 @@
             // Check for damage that ends the game
             if (state.damage >= 6 && state.opponentDamage >= 6) {
                 handleActivePilotCasualty(); //Moves pilot to graveyard
+                triggerHaptics('game-over-lost');
+                playSoundFX('game-over-lost');
                 triggerEndScreen("!!! MUTUAL DESTRUCTION !!!", "Both aircraft have been shot down simultaneously! The battle ends in a draw.");
                 return;
             } else if (state.damage >= 6) {
                 handleActivePilotCasualty();
+                triggerHaptics('game-over-lost');
+                playSoundFX('game-over-lost');
                 triggerEndScreen("!!! SHOT DOWN !!!","Your plane has sustained too much damage and you went down in flames. The enemy gains 1 victory point.");
                 return;
             } else if (state.opponentDamage >= 6) {
                 applyActivePilotVictoryPoints(1.0); // Rewards 1 VP to winning pilot
+                triggerHaptics('game-over-win');
+                playSoundFX('game-over-win');
                 triggerEndScreen("🏆 VICTORY 🏆", "You have successfully shot down the enemy! You gain 1 Victory Point.");
                 return;
             }
@@ -1967,6 +1997,99 @@
             localStorage.setItem('ace_active_pilots', JSON.stringify(activePilots));
 
             state.currentPilotIndex = null; // Unbind index tracker locks
+        }
+
+        function triggerScreenShake() {
+            const wrapper = document.getElementById('app-wrapper');
+            if (!wrapper) return;
+            
+            // Add the class to initiate the keyframe animation
+            wrapper.classList.add('shake-effect');
+            
+            // Clean it up after 400ms so it can be re-triggered on the next hit
+            setTimeout(() => {
+                wrapper.classList.remove('shake-effect');
+            }, 400);
+        }
+
+        function triggerHaptics(patternType) {
+            // Check if the hardware browser engine supports vibration mechanics
+            if (!navigator.vibrate) return;
+
+            if (patternType === 'damage') {
+                // A harsh, jarring double-pulse explosion pattern (200ms buzz, 100ms pause, 300ms buzz)
+                navigator.vibrate([200, 100, 300]);
+            } 
+            else if (patternType === 'hit-enemy') {
+                // A single short, satisfying tactile "click" confirmation burst
+                navigator.vibrate(60);
+            } 
+            else if (patternType === 'game-over-lost') {
+                // A long, dramatic downward failure rumble pulse
+                navigator.vibrate([500, 200, 500]);
+            }
+            else if (patternType === 'game-over-win') {
+                // A celebratory rhythmic fan-fare sequence layout pattern
+                navigator.vibrate([100, 50, 100, 50, 300]);
+            }
+        }
+
+        // Master sound FX oscillator synthesis engine
+        function playSoundFX(type) {
+            // Initialize standard browser sound engine channels
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+
+            if (type === 'damage') {
+                // 💥 Machine gun burst / impact: Harsh white-noise distortion explosion sound drop
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.3); // Pitch drops low
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3); // Fades out fast
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } 
+            else if (type === 'hit-enemy') {
+                // 🎯 Confirmed hit chime: Sharp high-pitched ping sound
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now); // Crisp high pitch
+                osc.frequency.linearRampToValueAtTime(440, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } 
+            else if (type === 'game-over-win') {
+                // 🏆 Victory Trumpets: Uplifting major arpeggio fanfare chords
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(261.63, now); // C4
+                osc.frequency.setValueAtTime(329.63, now + 0.1); // E4
+                osc.frequency.setValueAtTime(392.00, now + 0.2); // G4
+                osc.frequency.setValueAtTime(523.25, now + 0.3); // C5 (Sustained peak)
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+            else if (type === 'game-over-lost') {
+                // 💀 Downed plane wail: Wailing engine pitch dropping into failure depths
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.8); // Slopes down completely
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.8);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            }
         }
 
     </script>

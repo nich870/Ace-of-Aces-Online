@@ -1,12 +1,13 @@
 What each knob controls
-Knob	Effect	Raise it to...	Lower it to...
-dealt	Value of landing a hit	make the AI hunt shots more aggressively	make it less bloodthirsty
-taken	Cost of getting hit	make it more risk-averse	make it more reckless
-tailBonus	Value of being on your tail (before any shot)	make it chase position harder	make it care less about setup, more about the actual moment of firing
-tailedPenalty	Cost of being tailed (before any shot)	make it flee sooner when threatened	make it linger in bad spots longer
-shortRangeBonus	Preference for closing to short range (1–36)	make it a close-in brawler	make it comfortable sniping at long range
-noise	Random jitter on every move evaluation	make it sloppier/more human, more beatable	make it play closer to its theoretical best every turn
-worstFrac	How much of the outcome distribution it judges itself by (1.0 = full average, smaller = judges by its worst-case slice only)	make it more paranoid/cautious	make it more of a gambler, judging moves by their average outcome instead of worst case
+Knob		     Effect						                                Raise it to...				   	    Lower it to...
+dealt	      Value of landing a hit	    		    	| make the AI hunt shots more aggressively	     make it less bloodthirsty
+taken	       Cost of getting hit	         	    	|	make it more risk-averse	                  make it more reckless
+tailBonus   Value of being on your tail (before any shot)   	|	make it chase position harder		make it care less about setup, more about the actual moment of firing
+tailedPenalty	Cost of being tailed (before any shot)	    	| make it flee sooner when threatened	       make it linger in bad spots longer
+shortRangeBonus	Preference for closing to short range (1–36)	|	make it a close-in brawler	           make it comfortable sniping at long range
+noise	     Random jitter on every move evaluation	    	| make it sloppier/more human, more beatable	      make it play closer to its theoretical best every turn
+worstFrac	How much of the outcome distribution it judges itself by 
+		(1.0 = full average, smaller = judges by its worst-case slice only)  make it more paranoid/cautious	     make it more of a gambler, judging moves by their average outcome instead of worst case
 Some alternative presets to try
 
 Trigger-happy Ace — instead of cautious-but-lethal, an Ace that presses the attack recklessly:
@@ -42,6 +43,7 @@ Ace of Aces — the real deal — very tight worst-case reasoning but genuinely 
 
 javascript
 ace: { dealt: 20, taken: 8, tailBonus: 3, tailedPenalty: 2, shortRangeBonus: 2, noise: 0.5, worstFrac: 0.5 }
+
 A tip for dialing it in
 
 The fastest way to feel the effect of a change without replaying a bunch of games yourself: bump noise way up temporarily (like 15–20) for whichever difficulty you're testing — it'll make several games' worth of variety show up quickly, and you can watch whether the AI still "feels" aggressive/passive even with that randomness layered on top, which tells you whether the underlying weights are doing what you want before you dial the noise back down.
